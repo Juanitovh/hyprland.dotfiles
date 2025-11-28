@@ -204,6 +204,12 @@ else
   echo "You can install them manually later with: yay -S ${AUR_PACKAGES[*]}"
 fi
 
+# Enable elephant service
+echo "Enabling elephant service..."
+systemctl --user daemon-reload
+systemctl --user enable --now elephant.service
+
+
 # Copy configuration files
 echo ""
 echo "Installing configuration files..."
