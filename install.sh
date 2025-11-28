@@ -99,7 +99,7 @@ FONTS=(
 
 # Optional but recommended
 OPTIONAL=(
-  kitty
+  alacritty
   nautilus
   gnome-calculator
   imv
@@ -204,6 +204,8 @@ cp -r config/hypr/* ~/.config/hypr/
 # Copy waybar config
 mkdir -p ~/.config/waybar
 cp -r config/waybar/* ~/.config/waybar/
+cp -r config/waybar/indicators/* ~/.config/waybar/indicators/
+
 
 # Copy themes
 mkdir -p ~/.config/hypr/themes
@@ -297,6 +299,21 @@ echo "Installing default webapps..."
 ~/.local/bin/hypr-webapp-install "ChatGPT" "https://chatgpt.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chatgpt.png"
 ~/.local/bin/hypr-webapp-install "YouTube" "https://youtube.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/youtube.png"
 
+# Add UWSM autostart to .bash_profile
+echo ""
+echo "Adding UWSM autostart to ~/.bash_profile..."
+cat << 'EOF' >> ~/.bash_profile
+
+# Start Hyprland with UWSM on TTY1 login
+if [[ -z "$DISPLAY" && "$(tty)" == "/dev/tty1" ]]; then
+  if command -v uwsm &> /dev/null; then
+    exec uwsm start hyprland.desktop
+  else
+    exec Hyprland
+  fi
+fi
+EOF
+
 echo ""
 echo "==================================="
 echo "Installation complete!"
@@ -346,7 +363,7 @@ echo "  snapshot-create   - Create a system snapshot"
 echo "  snapshot-restore  - Restore from snapshot"
 echo "  snapshot-list     - List all snapshots"
 echo ""
-echo "To start Hyprland, run: Hyprland"
-echo "Or select 'Hyprland' from your display manager"
+echo "To start Hyprland, logout and login from a TTY (e.g. Ctrl+Alt+F2)."
+echo "Hyprland will start automatically."
 echo ""
 echo "Enjoy your new setup!"

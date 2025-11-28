@@ -44,7 +44,7 @@ echo "Theme set to: $THEME_NAME"
 # Restart components to apply new theme
 if pgrep -x waybar >/dev/null; then
   pkill waybar
-  uwsm-app -- waybar &
+  uwsm-app -- uwsm-app -- waybar &
 fi
 
 if pgrep -x swayosd-server >/dev/null; then
