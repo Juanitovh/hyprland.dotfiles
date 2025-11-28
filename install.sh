@@ -256,7 +256,8 @@ mkdir -p ~/.config/bash ~/.config/fish
 if [ -f config/bash/hyprland.bashrc ]; then
   cp config/bash/hyprland.bashrc ~/.config/bash/
   # Add sourcing to ~/.bashrc if not already there
-  if ! grep -q "hyprland.bashrc" ~/.bashrc 2>/dev/null; then
+  if ! grep -q "hyprland.bashrc" ~/.bashrc 2>/dev/null;
+  then
     echo "" >> ~/.bashrc
     echo "# Hyprland configuration" >> ~/.bashrc
     echo "[ -f ~/.config/bash/hyprland.bashrc ] && source ~/.config/bash/hyprland.bashrc" >> ~/.bashrc
@@ -266,14 +267,16 @@ fi
 if [ -f config/fish/hyprland.fish ]; then
   cp config/fish/hyprland.fish ~/.config/fish/
   # Add fish_add_path to fish config if not already there
-  if ! grep -q "fish_add_path ~/.local/bin" ~/.config/fish/config.fish 2>/dev/null; then
+  if ! grep -q "fish_add_path ~/.local/bin" ~/.config/fish/config.fish 2>/dev/null;
+  then
     echo "" >> ~/.config/fish/config.fish
     echo "# Add ~/.local/bin to PATH" >> ~/.config/fish/config.fish
     echo "fish_add_path ~/.local/bin" >> ~/.config/fish/config.fish
   fi
   # Add sourcing to fish config if not already there
   mkdir -p ~/.config/fish
-  if [ ! -f ~/.config/fish/config.fish ] || ! grep -q "hyprland.fish" ~/.config/fish/config.fish 2>/dev/null; then
+  if [ ! -f ~/.config/fish/config.fish ] || ! grep -q "hyprland.fish" ~/.config/fish/config.fish 2>/dev/null;
+  then
     echo "" >> ~/.config/fish/config.fish
     echo "# Hyprland configuration" >> ~/.config/fish/config.fish
     echo "test -f ~/.config/fish/hyprland.fish; and source ~/.config/fish/hyprland.fish" >> ~/.config/fish/config.fish
@@ -281,7 +284,7 @@ if [ -f config/fish/hyprland.fish ]; then
 fi
 
 # Add ~/.local/bin to PATH if not already there
-if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+if [[ ":$PATH:" != ":$HOME/.local/bin:"* ]]; then
   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 fi
 
