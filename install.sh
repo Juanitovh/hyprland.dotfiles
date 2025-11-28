@@ -242,6 +242,12 @@ fi
 
 if [ -f config/fish/hyprland.fish ]; then
   cp config/fish/hyprland.fish ~/.config/fish/
+  # Add fish_add_path to fish config if not already there
+  if ! grep -q "fish_add_path ~/.local/bin" ~/.config/fish/config.fish 2>/dev/null; then
+    echo "" >> ~/.config/fish/config.fish
+    echo "# Add ~/.local/bin to PATH" >> ~/.config/fish/config.fish
+    echo "fish_add_path ~/.local/bin" >> ~/.config/fish/config.fish
+  fi
   # Add sourcing to fish config if not already there
   mkdir -p ~/.config/fish
   if [ ! -f ~/.config/fish/config.fish ] || ! grep -q "hyprland.fish" ~/.config/fish/config.fish 2>/dev/null; then
