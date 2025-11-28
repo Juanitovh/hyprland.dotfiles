@@ -191,8 +191,7 @@ show_share_menu() {
   *clipboard*) 
     hypr-cmd-share clipboard ;; 
   *file*) 
-    hypr-launch-terminal -e "file=\$(zenity --file-selection 2>/dev/null || echo \""); if [ -n \"\$file\" ]; then python3 -m http.server 8080 -d \"\\\$(dirname \"\$file\")\" & notify-send \"File shared\" \"Available at http://localhost:8080/\
-\$(basename \"\$file\")\"; fi"
+    hypr-launch-terminal -e "file=\$(zenity --file-selection 2>/dev/null || echo \"\"); if [ -n \"\$file\" ]; then python3 -m http.server 8080 -d \"\$(dirname \"\$file\")\" & notify-send \"File shared\" \"Available at http://localhost:8080/\$(basename \"\$file\")\"; fi"
     ;; 
   esac
 }
