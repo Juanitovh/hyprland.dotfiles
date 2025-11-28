@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Fix malformed desktop entries that cause elephant to error
+
+echo "Scanning for malformed desktop entries..."
+
+# Find all desktop files
+DESKTOP_DIRS=(
+  "$HOME/.local/share/applications"
+  "/usr/share/applications"
+  "/usr/local/share/applications"
+)
+
+ERRORS_FOUND=0
+
+for DIR in "${DESKTOP_DIRS[@]}"; do
+  if [ ! -d "$DIR" ]; then
+    continue
+  fi
+
+  echo "Checking: $DIR"
+
+  while IFS= read -r -d '' desktop_file; do
+    # Check for problematic Exec lines
+    if grep -q "Exec=.*///" "$desktop_file" 2>/dev/null; then
+      echo "  [ERROR] Found malformed Exec line in: $desktop_file"
+      grep "Exec=" "$desktop_file"
+      ERRORS_FOUND=$((ERRORS_FOUND + 1))
+    fi
+
+    # Check for unterminated quotes
+    if grep -E "Exec=.*[\"'].*[^\"']$" "$desktop_file" 2>/dev/null; then
+      echo "  [WARN] Possible unterminated string in: $desktop_file"
+    fi
+  done < <(find "$DIR" -maxdepth 1 -name "*.desktop" -print0)
+done
+
+if [ $ERRORS_FOUND -eq 0 ]; then
+  echo ""
+  echo "No malformed desktop entries found!"
+else
+  echo ""
+  echo "Found $ERRORS_FOUND malformed desktop entries."
+  echo ""
+  echo "To fix, you can:"
+  echo "1. Remove the problematic desktop files"
+  echo "2. Edit them to fix the Exec= line"
+  echo "3. Report the issue to the package maintainer"
+fi

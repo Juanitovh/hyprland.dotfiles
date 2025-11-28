@@ -425,7 +425,25 @@ Configure snapper:
 sudo snapper -c root create-config /
 ```
 
-### Application launcher (walker) not showing apps
+### Application launcher (elephant) not showing apps
+
+If elephant shows errors like "unterminated string" or "uwsm-app -- ///":
+
+```bash
+# Find malformed desktop entries
+hypr-fix-desktop-entries
+
+# Check if elephant service is running
+systemctl --user status elephant
+
+# Restart elephant
+systemctl --user restart elephant
+
+# Check elephant logs
+journalctl --user -u elephant -f
+```
+
+### Walker not showing apps
 ```bash
 hypr-refresh-walker
 ```
