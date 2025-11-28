@@ -299,21 +299,6 @@ echo "Installing default webapps..."
 ~/.local/bin/hypr-webapp-install "ChatGPT" "https://chatgpt.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chatgpt.png"
 ~/.local/bin/hypr-webapp-install "YouTube" "https://youtube.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/youtube.png"
 
-# Add UWSM autostart to .bash_profile
-echo ""
-echo "Adding UWSM autostart to ~/.bash_profile..."
-cat << 'EOF' >> ~/.bash_profile
-
-# Start Hyprland with UWSM on TTY1 login
-if [[ -z "$DISPLAY" && "$(tty)" == "/dev/tty1" ]]; then
-  if command -v uwsm &> /dev/null; then
-    exec uwsm start hyprland.desktop
-  else
-    exec Hyprland
-  fi
-fi
-EOF
-
 echo ""
 echo "==================================="
 echo "Installation complete!"
@@ -363,7 +348,6 @@ echo "  snapshot-create   - Create a system snapshot"
 echo "  snapshot-restore  - Restore from snapshot"
 echo "  snapshot-list     - List all snapshots"
 echo ""
-echo "To start Hyprland, logout and login from a TTY (e.g. Ctrl+Alt+F2)."
-echo "Hyprland will start automatically."
+echo "To start Hyprland, select 'Hyprland (uwsm-managed)' or similar from your display manager (Ly)."
 echo ""
 echo "Enjoy your new setup!"

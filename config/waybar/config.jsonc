@@ -44,7 +44,6 @@
   },
   "custom/update": {
     "format": "",
-    "exec": "echo """,
     "on-click": "hypr-update-system",
     "tooltip-format": "System update",
     "signal": 7,
@@ -98,7 +97,7 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "blueberry"
+    "on-click": "hypr-launch-bluetooth"
   },
   "pulseaudio": {
     "format": "{icon}",
