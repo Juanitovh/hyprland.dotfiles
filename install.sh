@@ -40,13 +40,11 @@ CORE_PACKAGES=(
 WAYLAND_TOOLS=(
   waybar
   mako
-  walker
   grim
   slurp
   satty
   wl-clipboard
   cliphist
-  wayfreeze
   wf-recorder
   swww
   swayosd
@@ -79,11 +77,9 @@ UTILITIES=(
   xmlstarlet      # XML manipulation for fontconfig
 )
 
-# TUI apps for system management
+# TUI apps for system management (none available in official repos)
 TUI_APPS=(
-  bluetui      # Bluetooth TUI
-  impala       # WiFi/Network TUI
-  wiremix      # Audio mixer TUI
+  # bluetui, impala, wiremix are AUR packages - installed separately below
 )
 
 # Snapshot tools (BTRFS)
@@ -111,9 +107,23 @@ OPTIONAL=(
   htop
   btop           # System monitor TUI
   neovim
-  lazydocker     # Docker TUI manager
   dust           # Disk usage analyzer
-  yay            # AUR helper for package management
+  base-devel     # Required for building AUR packages
+  git            # Required for AUR
+  cargo          # Required for some AUR packages
+  gtk4           # Required for walker
+  gtk4-layer-shell  # Required for walker
+  protobuf       # Required for walker
+)
+
+# AUR packages (installed separately with AUR helper)
+AUR_PACKAGES=(
+  walker-bin     # App launcher
+  wayfreeze-git  # Screen freeze utility
+  bluetui        # Bluetooth TUI
+  impala         # WiFi/Network TUI
+  wiremix        # Audio mixer TUI
+  lazydocker     # Docker TUI manager
 )
 
 ALL_PACKAGES=(
@@ -144,6 +154,40 @@ sudo pacman -Syu --noconfirm
 # Install packages
 echo "Installing packages..."
 sudo pacman -S --needed --noconfirm "${ALL_PACKAGES[@]}"
+
+# Install AUR helper (yay) if not already installed
+echo ""
+if ! command -v yay &> /dev/null; then
+  echo "Installing yay (AUR helper)..."
+  cd /tmp
+  git clone https://aur.archlinux.org/yay.git
+  cd yay
+  makepkg -si --noconfirm
+  cd ~
+  echo "yay installed successfully"
+else
+  echo "yay is already installed"
+fi
+
+# Install AUR packages
+echo ""
+echo "Installing AUR packages..."
+echo "The following AUR packages will be installed:"
+printf '%s\n' "${AUR_PACKAGES[@]}"
+echo ""
+read -p "Install AUR packages? (y/n) " -n 1 -r
+echo ""
+
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  for pkg in "${AUR_PACKAGES[@]}"; do
+    echo "Installing $pkg..."
+    yay -S --needed --noconfirm "$pkg" || echo "Warning: Failed to install $pkg (continuing...)"
+  done
+  echo "AUR packages installation complete"
+else
+  echo "Skipping AUR packages installation"
+  echo "You can install them manually later with: yay -S ${AUR_PACKAGES[*]}"
+fi
 
 # Copy configuration files
 echo ""
@@ -210,18 +254,9 @@ fi
 echo "Creating state directories..."
 mkdir -p ~/.local/state/hyprland/{toggles,migrations,current,hooks,themes}
 
-# Install Hyprland plugin: split-monitor-workspaces
-echo ""
-echo "Installing split-monitor-workspaces plugin..."
-echo "This allows independent workspaces per monitor"
-if command -v hyprpm >/dev/null; then
-  hyprpm add https://github.com/Duckonaut/split-monitor-workspaces
-  hyprpm enable split-monitor-workspaces
-  echo "Plugin installed successfully"
-else
-  echo "WARNING: hyprpm not found. You may need to install the plugin manually later"
-  echo "Run: hyprpm add https://github.com/Duckonaut/split-monitor-workspaces"
-fi
+# Note: split-monitor-workspaces plugin is disabled by default
+# If you want per-monitor independent workspaces, uncomment the plugin in hyprland.conf
+# and install it with: hyprpm add https://github.com/Duckonaut/split-monitor-workspaces
 
 # Setup snapper for BTRFS snapshots
 echo ""
@@ -265,15 +300,18 @@ echo "==================================="
 echo ""
 echo "Installed features:"
 echo "  - Hyprland window manager with tiling & grouping"
-echo "  - Split-monitor-workspaces plugin (independent workspaces per monitor)"
+echo "  - Dual-monitor workspace support (1-5 on monitor 1, a-e/6-10 on monitor 2)"
 echo "  - Scratchpad workspace (SUPER+S)"
 echo "  - Webapp system with launch-or-focus (chromium-based)"
 echo "  - BTRFS snapshots with snapper"
 echo "  - Enhanced theme system (14 built-in + git theme support)"
 echo "  - Screenshot & screen recording tools"
-echo "  - TUI system management (Bluetooth, WiFi, Audio)"
+echo "  - TUI system management (Bluetooth, WiFi, Audio) - AUR packages"
+echo "  - Walker app launcher - AUR package"
+echo "  - Wayfreeze screen freeze - AUR package"
 echo "  - Bash & Fish shell configurations"
 echo "  - 60+ utility scripts for system management"
+echo "  - yay AUR helper for package management"
 echo ""
 echo "Quick start:"
 echo "  SUPER+SPACE        - Launch apps"
