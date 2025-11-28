@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Launch elephant app launcher
+
+exec elephant "$@"
