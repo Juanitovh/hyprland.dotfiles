@@ -204,6 +204,10 @@ else
   echo "You can install them manually later with: yay -S ${AUR_PACKAGES[*]}"
 fi
 
+# Copy systemd user service for elephant
+mkdir -p ~/.config/systemd/user
+cp config/systemd/user/elephant.service ~/.config/systemd/user/
+
 # Enable elephant service
 echo "Enabling elephant service..."
 systemctl --user daemon-reload
