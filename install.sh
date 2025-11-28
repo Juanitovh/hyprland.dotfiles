@@ -213,6 +213,10 @@ mkdir -p ~/.config/hypr/{apps,bindings}
 mkdir -p ~/.local/bin
 mkdir -p ~/.local/share/applications/icons
 
+# Copy application .desktop files
+mkdir -p ~/.local/share/applications
+cp applications/*.desktop ~/.local/share/applications/
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
