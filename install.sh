@@ -203,7 +203,7 @@ cp -r config/hypr/* ~/.config/hypr/
 
 # Copy waybar config
 mkdir -p ~/.config/waybar
-cp config/waybar/* ~/.config/waybar/
+cp -r config/waybar/* ~/.config/waybar/
 
 # Copy themes
 mkdir -p ~/.config/hypr/themes
@@ -213,12 +213,16 @@ cp themes/*.conf ~/.config/hypr/themes/
 ln -sf ~/.config/hypr/themes/catppuccin.conf ~/.config/hypr/theme.conf
 
 # Copy bin scripts
-cp bin/* ~/.local/bin/
-chmod +x ~/.local/bin/*
+if compgen -G "bin/*" > /dev/null; then
+  cp bin/* ~/.local/bin/
+  chmod +x ~/.local/bin/*
+fi
 
 # Copy snapshot scripts
-cp scripts/* ~/.local/bin/
-chmod +x ~/.local/bin/snapshot-*
+if compgen -G "scripts/*" > /dev/null; then
+  cp scripts/* ~/.local/bin/
+  chmod +x ~/.local/bin/snapshot-*
+fi
 
 # Copy shell configurations
 echo "Installing shell configurations..."
