@@ -221,6 +221,11 @@ cp applications/*.desktop ~/.local/share/applications/
 mkdir -p ~/.config/uwsm
 cp config/uwsm/env ~/.config/uwsm/
 
+# Copy elephant config
+mkdir -p ~/.config/elephant/menus
+cp config/elephant/*.toml ~/.config/elephant/
+cp config/elephant/menus/*.lua ~/.config/elephant/menus/
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
@@ -232,7 +237,7 @@ cp -r config/waybar/indicators/* ~/.config/waybar/indicators/
 
 # Copy themes
 mkdir -p ~/.config/hypr/themes
-cp themes/*.conf ~/.config/hypr/themes/
+cp -r themes/* ~/.config/hypr/themes/
 
 # Set default theme
 ln -sf ~/.config/hypr/themes/catppuccin.conf ~/.config/hypr/theme.conf

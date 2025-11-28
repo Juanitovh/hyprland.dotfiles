@@ -6,7 +6,7 @@
 current_wall=$(hyprctl hyprpaper listactive 2>/dev/null | head -1 | awk '{print $NF}')
 
 # Wallpaper directory
-WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+WALLPAPER_DIR="$HOME/.local/state/hyprland/current/theme/backgrounds/"
 
 if [ ! -d "$WALLPAPER_DIR" ]; then
   notify-send "Wallpaper directory not found" "$WALLPAPER_DIR"
