@@ -1,4 +1,7 @@
 # Environment variables for UWSM session
 
-# Add ~/.local/bin to PATH
+# Ensure standard paths are included
+export PATH="/usr/local/bin:/usr/bin:/bin"
+
+# Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
