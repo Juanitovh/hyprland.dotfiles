@@ -1,0 +1,4 @@
+# Environment variables for UWSM session
+
+# Add ~/.local/bin to PATH
+export PATH="$HOME/.local/bin:$PATH"

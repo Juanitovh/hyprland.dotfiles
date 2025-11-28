@@ -217,6 +217,10 @@ mkdir -p ~/.local/share/applications/icons
 mkdir -p ~/.local/share/applications
 cp applications/*.desktop ~/.local/share/applications/
 
+# Copy UWSM environment config
+mkdir -p ~/.config/uwsm
+cp config/uwsm/env ~/.config/uwsm/
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
