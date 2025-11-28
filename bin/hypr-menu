@@ -1,0 +1,185 @@
+#!/bin/bash
+
+# Simple menu system using walker (or rofi as fallback)
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+
+  if command -v walker >/dev/null; then
+    echo -e "$options" | walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt…" 2>/dev/null
+  elif command -v rofi >/dev/null; then
+    echo -e "$options" | rofi -dmenu -p "$prompt" -theme-str 'window {width: 400px;}'
+  elif command -v wofi >/dev/null; then
+    echo -e "$options" | wofi --dmenu -p "$prompt" --width 400
+  else
+    echo "Error: No menu program found (walker, rofi, or wofi)"
+    exit 1
+  fi
+}
+
+show_system_menu() {
+  case $(menu "System" "  Lock\n󰤄  Suspend\n󰜉  Restart\n󰐥  Shutdown") in
+  *Lock*) hyprlock ;;
+  *Suspend*) systemctl suspend ;;
+  *Restart*) systemctl reboot ;;
+  *Shutdown*) systemctl poweroff ;;
+  esac
+}
+
+show_keybindings_menu() {
+  hypr-menu-keybindings
+}
+
+show_setup_menu() {
+  case $(menu "Setup" "  Audio\n  WiFi\n󰂯  Bluetooth\n󰍹  Monitors\n  Input") in
+  *Audio*) hypr-launch-audio ;;
+  *WiFi*) hypr-launch-wifi ;;
+  *Bluetooth*) hypr-launch-bluetooth ;;
+  *Monitors*) ${EDITOR:-nano} ~/.config/hypr/monitors.conf && hyprctl reload ;;
+  *Input*) ${EDITOR:-nano} ~/.config/hypr/input.conf && hyprctl reload ;;
+  esac
+}
+
+show_style_menu() {
+  case $(menu "Style" "󰸌  Theme\n  Background\n  Hyprland Config") in
+  *Theme*) show_theme_menu ;;
+  *Background*) hypr-theme-bg-next ;;
+  *Hyprland*) ${EDITOR:-nano} ~/.config/hypr/looknfeel.conf && hyprctl reload ;;
+  esac
+}
+
+show_install_menu() {
+  case $(menu "Install" "󰣇  Package\n󰣇  AUR Package\n  Web App\n  Keybindings") in
+  *"AUR Package"*) hypr-pkg-aur-install ;;
+  *Package*) hypr-pkg-install ;;
+  *"Web App"*) hypr-webapp-install ;;
+  *Keybindings*) ${EDITOR:-nano} ~/.config/hypr/bindings/applications.conf && hyprctl reload ;;
+  esac
+}
+
+show_remove_menu() {
+  case $(menu "Remove" "󰣇  Package\n  Web App") in
+  *Package*) hypr-pkg-remove ;;
+  *"Web App"*)
+    webapp=$(ls ~/.local/share/applications/*.desktop 2>/dev/null | xargs -n1 basename | sed 's/\.desktop$//' | menu "Remove Web App")
+    if [ -n "$webapp" ]; then
+      hypr-webapp-remove "$webapp"
+    fi
+    ;;
+  esac
+}
+
+show_trigger_menu() {
+  case $(menu "Trigger" "  Capture\n  Share\n󰔎  Toggle") in
+  *Capture*) show_screenshot_menu ;;
+  *Share*) show_share_menu ;;
+  *Toggle*) show_toggle_menu ;;
+  esac
+}
+
+show_toggle_menu() {
+  case $(menu "Toggle" "󰔎  Nightlight\n󱫖  Idle Lock\n󰍜  Top Bar\n  Transparency\n  Workspace Gaps") in
+  *Nightlight*) hypr-toggle-nightlight ;;
+  *Idle*) hypr-toggle-idle ;;
+  *"Top Bar"*) hypr-toggle-waybar ;;
+  *Transparency*) hyprctl dispatch setprop "address:$(hyprctl activewindow -j | jq -r '.address')" opaque toggle ;;
+  *Gaps*) hypr-workspace-toggle-gaps ;;
+  esac
+}
+
+show_theme_menu() {
+  theme_dir="$HOME/.config/hypr/themes"
+  themes=$(ls -1 "$theme_dir" 2>/dev/null | sed 's/\.conf$//')
+
+  if [ -z "$themes" ]; then
+    notify-send "No themes found" "Please install themes first"
+    exit 1
+  fi
+
+  selected=$(echo -e "$themes" | menu "Select Theme")
+
+  if [ -n "$selected" ]; then
+    hypr-theme-set "$selected"
+  fi
+}
+
+show_screenshot_menu() {
+  case $(menu "Screenshot" "  Smart selection with editing\n  Selection to clipboard\n  Full screen") in
+  *editing*) hypr-screenshot smart ;;
+  *clipboard*) hypr-screenshot smart clipboard ;;
+  *screen*) hypr-screenshot fullscreen ;;
+  esac
+}
+
+show_screenrecord_menu() {
+  if pgrep -f "wf-recorder" >/dev/null; then
+    pkill -SIGINT wf-recorder
+    notify-send "Screen recording stopped"
+    exit 0
+  fi
+
+  case $(menu "Screen Record" "  Record region\n  Record fullscreen") in
+  *region*)
+    geometry=$(slurp 2>/dev/null)
+    if [ -n "$geometry" ]; then
+      wf-recorder -g "$geometry" -f "$HOME/Videos/recording-$(date +%Y-%m-%d_%H-%M-%S).mp4" &
+      notify-send "Recording started" "Press SUPER+ESC to stop"
+    fi
+    ;;
+  *fullscreen*)
+    wf-recorder -f "$HOME/Videos/recording-$(date +%Y-%m-%d_%H-%M-%S).mp4" &
+    notify-send "Recording started" "Press SUPER+ESC to stop"
+    ;;
+  esac
+}
+
+show_share_menu() {
+  case $(menu "Share" "  Share clipboard via LocalSend\n  Share file") in
+  *clipboard*)
+    wl-paste | nc.traditional -l -p 8080 &
+    notify-send "Clipboard shared" "Available on port 8080"
+    ;;
+  *file*)
+    file=$(zenity --file-selection 2>/dev/null || echo "")
+    if [ -n "$file" ]; then
+      python3 -m http.server 8080 -d "$(dirname "$file")" &
+      notify-send "File shared" "Available at http://localhost:8080/$(basename "$file")"
+    fi
+    ;;
+  esac
+}
+
+# Show main menu
+show_main_menu() {
+  case $(menu "Go" "󰀻  Apps\n󱓞  Trigger\n  Style\n  Setup\n󰉉  Install\n󰭌  Remove\n  Keybindings\n  System") in
+  *Apps*) walker -p "Launch…" ;;
+  *Trigger*) show_trigger_menu ;;
+  *Style*) show_style_menu ;;
+  *Setup*) show_setup_menu ;;
+  *Install*) show_install_menu ;;
+  *Remove*) show_remove_menu ;;
+  *Keybindings*) show_keybindings_menu ;;
+  *System*) show_system_menu ;;
+  esac
+}
+
+# Main menu routing
+case "${1,,}" in
+  system) show_system_menu ;;
+  theme) show_theme_menu ;;
+  screenshot) show_screenshot_menu ;;
+  screenrecord) show_screenrecord_menu ;;
+  share) show_share_menu ;;
+  keybindings) show_keybindings_menu ;;
+  setup) show_setup_menu ;;
+  style) show_style_menu ;;
+  install) show_install_menu ;;
+  remove) show_remove_menu ;;
+  trigger) show_trigger_menu ;;
+  toggle) show_toggle_menu ;;
+  *)
+    # Default main menu (SUPER+ALT+SPACE)
+    show_main_menu
+    ;;
+esac

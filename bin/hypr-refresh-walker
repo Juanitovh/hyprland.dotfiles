@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hypr-refresh-walker: Reload walker configuration
+
+echo "Reloading walker..."
+hypr-restart-walker
+notify-send "Walker" "Configuration reloaded" -t 2000

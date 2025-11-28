@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# hypr-theme-remove: Remove a custom installed theme
+# Usage: hypr-theme-remove [theme-name]
+
+THEMES_DIR="$HOME/.config/hypr-themes"
+CURRENT_DIR="$HOME/.local/state/hyprland/current"
+
+if [ ! -d "$THEMES_DIR" ]; then
+  echo "No custom themes installed."
+  exit 0
+fi
+
+if [ -z "$1" ]; then
+  # Interactive mode - list custom themes only
+  mapfile -t custom_themes < <(find "$THEMES_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
+
+  if [[ ${#custom_themes[@]} -eq 0 ]]; then
+    echo "No custom themes installed."
+    exit 0
+  fi
+
+  echo "Select theme to remove:"
+  select THEME_NAME in "${custom_themes[@]}"; do
+    if [ -n "$THEME_NAME" ]; then
+      break
+    fi
+  done
+else
+  THEME_NAME="$1"
+fi
+
+THEME_PATH="$THEMES_DIR/$THEME_NAME"
+
+# Ensure a theme was selected
+if [ -z "$THEME_NAME" ]; then
+  exit 1
+fi
+
+# Check if theme exists
+if [ ! -d "$THEME_PATH" ]; then
+  echo "Error: Theme '$THEME_NAME' not found."
+  exit 1
+fi
+
+# Check if it's a built-in theme (safety check)
+if [[ "$THEME_PATH" == *"/hypr/themes/"* ]]; then
+  echo "Error: Cannot remove built-in theme '$THEME_NAME'"
+  exit 1
+fi
+
+# Move to next theme if current theme is being removed
+if [ "$(readlink -f "$CURRENT_DIR/theme")" = "$(readlink -f "$THEME_PATH")" ]; then
+  echo "Switching to next theme..."
+  hypr-theme-next
+fi
+
+# Remove the theme directory
+echo "Removing theme '$THEME_NAME'..."
+rm -rf "$THEME_PATH"
+
+# Remove from installed list
+INSTALLED_LIST="$HOME/.local/state/hyprland/themes/installed.list"
+if [ -f "$INSTALLED_LIST" ]; then
+  sed -i "/^$THEME_NAME$/d" "$INSTALLED_LIST"
+fi
+
+echo "Theme '$THEME_NAME' removed successfully."

@@ -1,0 +1,137 @@
+===========================================
+HYPRLAND STANDALONE INSTALLATION PACKAGE
+===========================================
+
+Created from Omarchy OS - Fully standalone, no Omarchy dependencies
+
+PACKAGE CONTENTS:
+-----------------
+
+Configuration Files (52 total):
+  ✓ Hyprland configs (hyprland.conf, looknfeel.conf, etc.)
+  ✓ Window management bindings (tiling, groups, scratchpad)
+  ✓ Application bindings (webapps, terminal, browser)
+  ✓ Media controls & clipboard management
+  ✓ Window rules for browsers, terminals, system apps
+  ✓ 14 themes (Catppuccin, Gruvbox, Tokyo Night, etc.)
+
+Utility Scripts (bin/):
+  ✓ hypr-webapp-install/remove/launch - Webapp management
+  ✓ hypr-window-* - Window operations (close-all, pop, toggle-gaps)
+  ✓ hypr-toggle-* - Toggle waybar, idle, nightlight
+  ✓ hypr-screenshot - Advanced screenshot tool
+  ✓ hypr-battery-remaining - Battery info
+  ✓ hypr-audio-switch - Audio output switcher
+  ✓ hypr-launch-walker - App launcher
+  ✓ hypr-menu - Menu system
+  ✓ hypr-theme-* - Theme management (set, list, bg-next)
+
+Snapshot Scripts (scripts/):
+  ✓ snapshot-create - Create BTRFS snapshot
+  ✓ snapshot-restore - Restore from snapshot
+  ✓ snapshot-list - List all snapshots
+  ✓ snapshot-delete - Delete snapshot
+
+Install Script:
+  ✓ install.sh - Automated installation with all dependencies
+
+Documentation:
+  ✓ README.md - Complete documentation
+  ✓ QUICKSTART.md - Quick start guide
+  ✓ INSTALLATION_SUMMARY.txt - This file
+
+KEY FEATURES:
+-------------
+
+Window Management:
+  • Dynamic tiling (dwindle layout)
+  • Window grouping/tabbing (SUPER+G)
+  • Scratchpad workspace (SUPER+S)
+  • Split-monitor-workspaces plugin (5 workspaces per monitor)
+  • 10 workspaces total
+  • Floating & fullscreen modes
+
+Webapps:
+  • Chromium-based webapp system
+  • Desktop integration with icons
+  • Pre-installed: GitHub, ChatGPT, YouTube
+  • Easy webapp creation
+
+Snapshots:
+  • BTRFS system snapshots using Snapper
+  • Automatic snapshots on package updates
+  • Easy restore from any snapshot
+  • Snapshot management commands
+
+Themes:
+  • 14 beautiful themes included
+  • Instant theme switching
+  • Wallpaper cycling
+  • Custom theme support
+
+Tools:
+  • Walker app launcher
+  • Waybar status bar
+  • Mako notifications
+  • Screenshot with editing (satty)
+  • Screen recording (wf-recorder)
+  • Clipboard manager (cliphist)
+  • Audio device switcher
+  • TUI management apps:
+    - bluetui (Bluetooth)
+    - impala (WiFi/Network)
+    - wiremix (Audio mixer)
+
+INSTALLATION:
+-------------
+
+1. cd installation_hyprland
+2. ./install.sh
+3. Logout and select "Hyprland" from display manager
+4. Enjoy!
+
+REQUIREMENTS:
+-------------
+
+  • Arch Linux (or Arch-based distro)
+  • BTRFS filesystem (recommended for snapshots)
+  • Internet connection
+
+DIFFERENCES FROM OMARCHY:
+-------------------------
+
+  ✓ No Omarchy-specific binaries
+  ✓ No Omarchy fork of Chromium
+  ✓ Standard Arch packages only
+  ✓ Simplified menu system
+  ✓ Snapper-based snapshots
+  ✓ All core features preserved
+
+QUICK KEYBINDINGS:
+------------------
+
+  SUPER + SPACE              App launcher
+  SUPER + ALT + SPACE        Settings (audio/wifi/bluetooth/theme)
+  SUPER + K                  Show all keybindings
+  SUPER + ENTER              Terminal
+  SUPER + W or Q             Close window
+  SUPER + T                  Toggle float/tile
+  SUPER + F                  Fullscreen
+  SUPER + G                  Toggle grouping
+  SUPER + S                  Scratchpad
+  SUPER + 1-5                Switch workspace
+  SUPER + ESC                System menu
+  SUPER + SHIFT + A          ChatGPT
+  SUPER + SHIFT + Y          YouTube
+  SUPER + CTRL + V           Clipboard manager
+  PRINT                      Screenshot
+  SUPER + CTRL + UP/DOWN     Workspace nav
+
+SUPPORT:
+--------
+
+Documentation: See README.md
+Hyprland Wiki: https://wiki.hyprland.org
+Arch Wiki: https://wiki.archlinux.org
+
+Enjoy your new Hyprland setup!

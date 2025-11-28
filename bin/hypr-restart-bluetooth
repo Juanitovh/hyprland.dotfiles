@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hypr-restart-bluetooth: Restart/unblock Bluetooth
+
+echo "Unblocking bluetooth..."
+rfkill unblock bluetooth
+rfkill list bluetooth

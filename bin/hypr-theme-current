@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# hypr-theme-current: Show currently active theme
+
+CURRENT_THEME_LINK="$HOME/.local/state/hyprland/current/theme"
+
+if [[ -L "$CURRENT_THEME_LINK" ]]; then
+  basename "$(realpath "$CURRENT_THEME_LINK")" .conf | sed -E 's/(^|-)([a-z])/\1\u\2/g; s/-/ /g'
+else
+  echo "No theme set"
+fi

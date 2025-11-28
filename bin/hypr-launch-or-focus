@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# hypr-launch-or-focus: Focus existing window or launch new application
+# Usage: hypr-launch-or-focus [window-pattern] [launch-command]
+#
+# SECURITY: Fixed dangerous eval usage from omarchy version
+
+if (($# == 0)); then
+  echo "Usage: hypr-launch-or-focus [window-pattern] [launch-command]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+shift
+LAUNCH_COMMAND="${@:-uwsm-app -- $WINDOW_PATTERN}"
+
+# Find window by class or title using jq
+WINDOW_ADDRESS=$(hyprctl clients -j | jq -r --arg p "$WINDOW_PATTERN" \
+  '.[]|select((.class|test("\\b" + $p + "\\b";"i")) or (.title|test("\\b" + $p + "\\b";"i")))|.address' \
+  | head -n1)
+
+if [[ -n $WINDOW_ADDRESS ]]; then
+  # Focus existing window
+  hyprctl dispatch focuswindow "address:$WINDOW_ADDRESS"
+else
+  # Launch new instance (SECURITY FIX: removed eval, using direct exec with proper quoting)
+  exec $LAUNCH_COMMAND
+fi

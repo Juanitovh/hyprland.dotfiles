@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# hypr-update-system: Update system and AUR packages
+
+set -e
+
+echo -e "\e[32m\nUpdating system packages...\e[0m"
+sudo pacman -Syu --noconfirm
+
+# Update AUR packages if yay is installed
+if command -v yay &>/dev/null && pacman -Qem &>/dev/null 2>&1; then
+  echo -e "\e[32m\nUpdating AUR packages...\e[0m"
+  yay -Sua --noconfirm
+fi
+
+# Remove orphan packages
+orphans=$(pacman -Qtdq 2>/dev/null || true)
+if [[ -n $orphans ]]; then
+  echo -e "\e[32m\nRemoving orphan packages...\e[0m"
+  for pkg in $orphans; do
+    sudo pacman -Rs --noconfirm "$pkg" || true
+  done
+fi
+
+echo -e "\e[32m\nSystem update complete!\e[0m"
+notify-send "System Update" "All packages updated" -t 3000

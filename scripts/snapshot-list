@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# List all BTRFS snapshots
+
+if ! command -v snapper >/dev/null; then
+  echo "Error: snapper is not installed"
+  echo "Install with: sudo pacman -S snapper"
+  exit 1
+fi
+
+sudo snapper -c root list

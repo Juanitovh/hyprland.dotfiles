@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Launch WiFi/Network TUI manager
+
+# Ensure WiFi is unblocked
+rfkill unblock wifi
+
+# Launch impala (network manager TUI)
+if command -v impala >/dev/null; then
+  exec uwsm-app -- xdg-terminal-exec --app-id=org.hypr.impala -- impala
+else
+  notify-send "impala not installed" "Install with: sudo pacman -S impala"
+  exit 1
+fi

@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# hypr-app-viewer: Browse and manage installed applications
+# Usage: hypr-app-viewer
+
+# Find all desktop files
+find_desktop_files() {
+  find ~/.local/share/applications /usr/share/applications -name "*.desktop" 2>/dev/null | sort -u
+}
+
+# Parse desktop file for display
+parse_desktop_file() {
+  local file="$1"
+  local name=$(grep -m1 "^Name=" "$file" 2>/dev/null | cut -d'=' -f2-)
+  local comment=$(grep -m1 "^Comment=" "$file" 2>/dev/null | cut -d'=' -f2-)
+  local exec=$(grep -m1 "^Exec=" "$file" 2>/dev/null | cut -d'=' -f2-)
+
+  # Determine type
+  local type="App"
+  if [[ "$exec" == *"hypr-launch-webapp"* ]]; then
+    type="Webapp"
+  elif [[ "$exec" == *"xdg-terminal-exec"* ]]; then
+    type="TUI"
+  fi
+
+  # Format: [Type] Name - Comment
+  printf "[%-6s] %-30s %s\n" "$type" "$name" "$comment"
+}
+
+# Main menu
+main_menu() {
+  echo "Building application list..."
+
+  # Create list of apps with their desktop files
+  local -A app_files
+  while IFS= read -r file; do
+    local display=$(parse_desktop_file "$file")
+    app_files["$display"]="$file"
+  done < <(find_desktop_files)
+
+  # Show fzf selector
+  local selected=$(printf "%s\n" "${!app_files[@]}" | sort | fzf \
+    --height=80% \
+    --reverse \
+    --header="Applications (Tab: Preview, Enter: Actions)" \
+    --preview="cat {}" \
+    --preview-window=right:50%:wrap)
+
+  if [[ -n "$selected" ]]; then
+    local file="${app_files[$selected]}"
+    action_menu "$file" "$selected"
+  fi
+}
+
+# Action menu for selected app
+action_menu() {
+  local file="$1"
+  local display="$2"
+
+  local exec_line=$(grep -m1 "^Exec=" "$file" | cut -d'=' -f2-)
+
+  echo ""
+  echo "Selected: $display"
+  echo "File: $file"
+  echo ""
+  echo "Actions:"
+  echo "  1. Launch application"
+  echo "  2. View desktop file"
+  echo "  3. Edit desktop file"
+
+  # Only show remove for user-installed apps
+  if [[ "$file" == "$HOME/.local/share/applications/"* ]]; then
+    echo "  4. Remove application"
+  fi
+
+  echo "  0. Back to list"
+  echo ""
+  read -p "Choose action: " action
+
+  case "$action" in
+    1)
+      echo "Launching $display..."
+      # Extract and execute command
+      exec_cmd=$(echo "$exec_line" | sed 's/%[fFuU]//g')
+      eval "$exec_cmd" &
+      ;;
+    2)
+      less "$file"
+      action_menu "$file" "$display"
+      ;;
+    3)
+      ${EDITOR:-nvim} "$file"
+      action_menu "$file" "$display"
+      ;;
+    4)
+      if [[ "$file" == "$HOME/.local/share/applications/"* ]]; then
+        read -p "Are you sure you want to remove this application? (y/N): " confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+          rm "$file"
+          # Also remove icon if it exists
+          local icon_name=$(grep -m1 "^Icon=" "$file" | cut -d'=' -f2-)
+          if [[ -f "$HOME/.local/share/applications/icons/$icon_name.png" ]]; then
+            rm "$HOME/.local/share/applications/icons/$icon_name.png"
+          fi
+          echo "Application removed."
+        fi
+      fi
+      ;;
+    0|"")
+      main_menu
+      ;;
+  esac
+}
+
+# Run main menu
+main_menu

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-restart-waybar: Restart waybar
+
+hypr-restart-app waybar

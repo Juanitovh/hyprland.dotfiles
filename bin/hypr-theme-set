@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# hypr-theme-set: Set active Hyprland theme
+# Usage: hypr-theme-set <theme-name>
+# Supports both built-in themes and custom git-installed themes
+
+if [[ -z $1 && $1 != "CNCLD" ]]; then
+  echo "Usage: hypr-theme-set <theme-name>"
+  echo "Available themes:"
+  hypr-theme-list
+  exit 1
+fi
+
+BUILTIN_THEMES_DIR="$HOME/.config/hypr/themes"
+CUSTOM_THEMES_DIR="$HOME/.config/hypr-themes"
+CURRENT_THEME_DIR="$HOME/.local/state/hyprland/current/theme"
+mkdir -p "$(dirname "$CURRENT_THEME_DIR")"
+
+# Normalize theme name (remove HTML tags, lowercase, spaces to hyphens)
+THEME_NAME=$(echo "$1" | sed -E 's/<[^>]+>//g' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+# Check custom themes first, then built-in themes
+if [[ -d "$CUSTOM_THEMES_DIR/$THEME_NAME" ]]; then
+  THEME_PATH="$CUSTOM_THEMES_DIR/$THEME_NAME"
+elif [[ -f "$BUILTIN_THEMES_DIR/$THEME_NAME.conf" ]]; then
+  THEME_PATH="$BUILTIN_THEMES_DIR/$THEME_NAME.conf"
+else
+  echo "Theme '$THEME_NAME' does not exist"
+  echo "Available themes:"
+  hypr-theme-list
+  exit 1
+fi
+
+# Update theme symlink
+ln -nsf "$THEME_PATH" "$CURRENT_THEME_DIR"
+
+# For built-in themes, also create the old-style symlink for compatibility
+if [[ -f "$BUILTIN_THEMES_DIR/$THEME_NAME.conf" ]]; then
+  ln -sf "$THEME_PATH" "$HOME/.config/hypr/theme.conf"
+fi
+
+echo "Theme set to: $THEME_NAME"
+
+# Restart components to apply new theme
+if pgrep -x waybar >/dev/null; then
+  pkill waybar
+  uwsm-app -- waybar &
+fi
+
+if pgrep -x swayosd-server >/dev/null; then
+  pkill swayosd-server
+  swayosd-server &
+fi
+
+# Reload Hyprland config
+hyprctl reload
+
+# Reload mako notification daemon
+if pgrep -x mako >/dev/null; then
+  makoctl reload
+fi
+
+# Reload btop config
+pkill -SIGUSR2 btop 2>/dev/null
+
+# Call hook on theme set
+hypr-hook theme-set "$THEME_NAME"
+
+notify-send "Theme changed" "Set to $THEME_NAME" -t 2000

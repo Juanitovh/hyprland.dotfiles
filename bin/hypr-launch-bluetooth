@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Launch Bluetooth TUI manager
+
+# Ensure Bluetooth is unblocked
+rfkill unblock bluetooth
+
+# Launch bluetui
+if command -v bluetui >/dev/null; then
+  exec uwsm-app -- xdg-terminal-exec --app-id=org.hypr.bluetui -- bluetui
+else
+  notify-send "bluetui not installed" "Install with: sudo pacman -S bluetui"
+  exit 1
+fi

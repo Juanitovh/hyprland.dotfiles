@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hypr-refresh-hyprland: Reload Hyprland configuration
+
+echo "Reloading Hyprland configuration..."
+hyprctl reload
+notify-send "Hyprland" "Configuration reloaded" -t 2000

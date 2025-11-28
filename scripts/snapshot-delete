@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Delete a BTRFS snapshot
+
+if ! command -v snapper >/dev/null; then
+  echo "Error: snapper is not installed"
+  exit 1
+fi
+
+# List available snapshots
+echo "Available snapshots:"
+sudo snapper -c root list
+
+echo -e "\nEnter snapshot number to delete (or 'q' to quit): "
+read -r snapshot_num
+
+if [ "$snapshot_num" = "q" ] || [ -z "$snapshot_num" ]; then
+  echo "Cancelled"
+  exit 0
+fi
+
+# Delete the snapshot
+sudo snapper -c root delete $snapshot_num
+
+echo "Snapshot $snapshot_num deleted successfully"

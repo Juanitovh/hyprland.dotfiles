@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Interactive AUR package installer using fzf and yay
+
+if ! command -v fzf >/dev/null; then
+  echo "Error: fzf is not installed"
+  echo "Install with: sudo pacman -S fzf"
+  exit 1
+fi
+
+if ! command -v yay >/dev/null; then
+  echo "Error: yay is not installed"
+  echo ""
+  echo "Install yay first:"
+  echo "  sudo pacman -S --needed git base-devel"
+  echo "  git clone https://aur.archlinux.org/yay.git"
+  echo "  cd yay"
+  echo "  makepkg -si"
+  exit 1
+fi
+
+fzf_args=(
+  --multi
+  --preview 'yay -Siia {1}'
+  --preview-label='alt-p: toggle description, alt-b/B: toggle PKGBUILD, alt-j/k: scroll, tab: multi-select'
+  --preview-label-pos='bottom'
+  --preview-window 'down:65%:wrap'
+  --bind 'alt-p:toggle-preview'
+  --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+  --bind 'alt-k:preview-up,alt-j:preview-down'
+  --bind 'alt-b:change-preview:yay -Gpa {1} | tail -n +5'
+  --bind 'alt-B:change-preview:yay -Siia {1}'
+  --color 'pointer:green,marker:green'
+  --prompt='Install AUR packages > '
+  --header='TAB: select multiple | ALT+B: view PKGBUILD | ENTER: install | ESC: cancel'
+)
+
+pkg_names=$(yay -Slqa | fzf "${fzf_args[@]}")
+
+if [[ -n "$pkg_names" ]]; then
+  echo "$pkg_names" | tr '\n' ' ' | xargs yay -S
+else
+  echo "No packages selected"
+fi

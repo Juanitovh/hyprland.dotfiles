@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# hypr-launch-or-focus-webapp: Focus existing webapp or launch new one
+# Usage: hypr-launch-or-focus-webapp [window-pattern] [url-and-flags...]
+
+if (($# == 0)); then
+  echo "Usage: hypr-launch-or-focus-webapp [window-pattern] [url-and-flags...]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+shift
+LAUNCH_COMMAND="hypr-launch-webapp $@"
+
+exec hypr-launch-or-focus "$WINDOW_PATTERN" "$LAUNCH_COMMAND"

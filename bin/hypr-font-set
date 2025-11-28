@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# hypr-font-set: Set system-wide monospace font
+# Usage: hypr-font-set <font-name>
+
+font_name="$1"
+
+if [[ -z "$font_name" || "$font_name" == "CNCLD" ]]; then
+  echo "Usage: hypr-font-set <font-name>"
+  echo ""
+  echo "Available fonts:"
+  hypr-font-list | head -20
+  echo "..."
+  exit 1
+fi
+
+# Check if font exists
+if ! fc-list | grep -iq "$font_name"; then
+  echo "Font '$font_name' not found."
+  echo "Use 'hypr-font-list' to see available fonts."
+  exit 1
+fi
+
+# Update alacritty
+if [[ -f ~/.config/alacritty/alacritty.toml ]]; then
+  sed -i "s/family = \".*\"/family = \"$font_name\"/g" ~/.config/alacritty/alacritty.toml
+fi
+
+# Update kitty
+if [[ -f ~/.config/kitty/kitty.conf ]]; then
+  sed -i "s/^font_family .*/font_family $font_name/g" ~/.config/kitty/kitty.conf
+  pkill -USR1 kitty
+fi
+
+# Update ghostty
+if [[ -f ~/.config/ghostty/config ]]; then
+  sed -i "s/font-family = \".*\"/font-family = \"$font_name\"/g" ~/.config/ghostty/config
+  pkill -SIGUSR2 ghostty 2>/dev/null
+fi
+
+# Update waybar
+if [[ -f ~/.config/waybar/style.css ]]; then
+  sed -i "s/font-family: .*/font-family: '$font_name';/g" ~/.config/waybar/style.css
+fi
+
+# Update swayosd
+if [[ -f ~/.config/swayosd/style.css ]]; then
+  sed -i "s/font-family: .*/font-family: '$font_name';/g" ~/.config/swayosd/style.css
+fi
+
+# Update fontconfig if xmlstarlet is available
+if command -v xmlstarlet &>/dev/null && [[ -f ~/.config/fontconfig/fonts.conf ]]; then
+  xmlstarlet ed -L \
+    -u '//match[@target="pattern"][test/string="monospace"]/edit[@name="family"]/string' \
+    -v "$font_name" \
+    ~/.config/fontconfig/fonts.conf 2>/dev/null || true
+fi
+
+# Restart components
+hypr-restart-waybar
+hypr-restart-swayosd
+hypr-restart-walker
+
+# Call hook
+hypr-hook font-set "$font_name"
+
+echo "Font set to: $font_name"
+notify-send "Font Changed" "Set to $font_name" -t 2000

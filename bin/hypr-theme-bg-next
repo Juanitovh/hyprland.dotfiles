@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Cycle to next wallpaper
+
+# Get current wallpaper
+current_wall=$(hyprctl hyprpaper listactive 2>/dev/null | head -1 | awk '{print $NF}')
+
+# Wallpaper directory
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
+
+if [ ! -d "$WALLPAPER_DIR" ]; then
+  notify-send "Wallpaper directory not found" "$WALLPAPER_DIR"
+  exit 1
+fi
+
+# Get list of wallpapers
+mapfile -t wallpapers < <(find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | sort)
+
+if [ ${#wallpapers[@]} -eq 0 ]; then
+  notify-send "No wallpapers found" "Add wallpapers to $WALLPAPER_DIR"
+  exit 1
+fi
+
+# Find current index
+current_index=-1
+for i in "${!wallpapers[@]}"; do
+  if [ "${wallpapers[$i]}" = "$current_wall" ]; then
+    current_index=$i
+    break
+  fi
+done
+
+# Get next wallpaper
+next_index=$(( (current_index + 1) % ${#wallpapers[@]} ))
+next_wall="${wallpapers[$next_index]}"
+
+# Set wallpaper using swww or hyprpaper
+if command -v swww >/dev/null; then
+  swww img "$next_wall" --transition-type fade
+elif command -v hyprpaper >/dev/null; then
+  hyprctl hyprpaper preload "$next_wall"
+  hyprctl hyprpaper wallpaper ",$next_wall"
+else
+  notify-send "No wallpaper setter found" "Install swww or hyprpaper"
+  exit 1
+fi
+
+notify-send "Wallpaper changed" "$(basename "$next_wall")"

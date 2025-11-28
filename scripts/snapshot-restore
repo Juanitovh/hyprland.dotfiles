@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Restore from BTRFS snapshot using snapper
+
+if ! command -v snapper >/dev/null; then
+  echo "Error: snapper is not installed"
+  echo "Install with: sudo pacman -S snapper"
+  exit 1
+fi
+
+# List available snapshots
+echo "Available snapshots:"
+sudo snapper -c root list
+
+echo -e "\nEnter snapshot number to restore (or 'q' to quit): "
+read -r snapshot_num
+
+if [ "$snapshot_num" = "q" ] || [ -z "$snapshot_num" ]; then
+  echo "Cancelled"
+  exit 0
+fi
+
+# Verify snapshot exists
+if ! sudo snapper -c root list | grep -q "^$snapshot_num "; then
+  echo "Error: Snapshot $snapshot_num not found"
+  exit 1
+fi
+
+# Confirm restoration
+echo -e "\nWARNING: This will restore your system to snapshot $snapshot_num"
+echo "Current files will be modified. Continue? (yes/no)"
+read -r confirm
+
+if [ "$confirm" != "yes" ]; then
+  echo "Cancelled"
+  exit 0
+fi
+
+# Create a pre-restore snapshot
+echo "Creating pre-restore snapshot..."
+sudo snapper -c root create --description "Before restoring to snapshot $snapshot_num"
+
+# Restore the snapshot
+echo "Restoring snapshot $snapshot_num..."
+sudo snapper -c root undochange $snapshot_num..0
+
+echo -e "\nSnapshot restored successfully!"
+echo "You may need to reboot for all changes to take effect."
+echo "Reboot now? (yes/no)"
+read -r reboot_confirm
+
+if [ "$reboot_confirm" = "yes" ]; then
+  sudo systemctl reboot
+fi

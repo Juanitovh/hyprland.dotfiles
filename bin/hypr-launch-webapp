@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Launch web applications using Chromium in app mode
+
+if [ -z "$1" ]; then
+  echo "Usage: hypr-launch-webapp <URL>"
+  exit 1
+fi
+
+# Get default browser or use chromium
+browser=$(xdg-settings get default-web-browser 2>/dev/null)
+
+# Check if browser supports --app flag (Chromium-based browsers)
+case $browser in
+  google-chrome*|brave-browser*|microsoft-edge*|chromium*|vivaldi*|opera*)
+    # Use the default browser
+    ;;
+  *)
+    # Fallback to chromium
+    browser="chromium.desktop"
+    ;;
+esac
+
+# Extract browser executable from .desktop file
+browser_exec=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' \
+  {~/.local,~/.nix-profile,/usr}/share/applications/"$browser" 2>/dev/null | head -1)
+
+if [ -z "$browser_exec" ]; then
+  # Fallback to chromium binary
+  browser_exec="chromium"
+fi
+
+# Launch the webapp
+exec setsid uwsm-app -- "$browser_exec" --app="$1" "${@:2}"

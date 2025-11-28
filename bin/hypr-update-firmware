@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# hypr-update-firmware: Update system firmware using fwupd
+
+set -e
+
+if ! command -v fwupdmgr &>/dev/null; then
+  echo "fwupd not installed. Installing..."
+  sudo pacman -S --noconfirm fwupd
+fi
+
+echo -e "\e[32mUpdating firmware...\e[0m"
+fwupdmgr refresh
+sudo fwupdmgr update
+
+echo -e "\e[32mFirmware update complete!\e[0m"

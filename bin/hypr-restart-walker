@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-restart-walker: Restart walker app launcher
+
+hypr-restart-app walker

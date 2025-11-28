@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# hypr-theme-update: Update custom git-installed themes
+# Usage: hypr-theme-update [theme-name]
+# Without arguments, updates all custom themes
+
+THEMES_DIR="$HOME/.config/hypr-themes"
+
+if [ ! -d "$THEMES_DIR" ]; then
+  echo "No custom themes installed."
+  exit 0
+fi
+
+if [ -n "$1" ]; then
+  # Update specific theme
+  THEME_PATH="$THEMES_DIR/$1"
+  if [ ! -d "$THEME_PATH" ]; then
+    echo "Error: Theme '$1' not found."
+    exit 1
+  fi
+
+  if [ ! -d "$THEME_PATH/.git" ]; then
+    echo "Error: Theme '$1' is not a git repository."
+    exit 1
+  fi
+
+  echo "Updating theme '$1'..."
+  cd "$THEME_PATH" && git pull
+else
+  # Update all custom themes
+  find "$THEMES_DIR" -mindepth 1 -maxdepth 1 -type d | while read -r theme_path; do
+    theme_name=$(basename "$theme_path")
+    if [ -d "$theme_path/.git" ]; then
+      echo "Updating theme '$theme_name'..."
+      cd "$theme_path" && git pull
+    fi
+  done
+fi
+
+echo "Theme update complete."

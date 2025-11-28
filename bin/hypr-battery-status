@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# hypr-battery-status: Show battery percentage
+
+if command -v upower &>/dev/null; then
+  upower -i $(upower -e | grep BAT) \
+  | awk -F: '/percentage/ {
+      gsub(/[%[:space:]]/, "", $2);
+      val=$2;
+      printf("%d%%\n", (val+0.5))
+      exit
+    }'
+else
+  echo "upower not installed"
+  exit 1
+fi

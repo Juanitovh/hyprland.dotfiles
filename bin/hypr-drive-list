@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-drive-list: List all available drives
+
+lsblk -dpno NAME,SIZE,MODEL,TYPE | grep -E 'disk$'

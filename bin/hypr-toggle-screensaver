@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hypr-toggle-screensaver: Toggle screensaver
+
+STATE_FILE=~/.local/state/hyprland/toggles/screensaver-off
+
+if [[ -f $STATE_FILE ]]; then
+  rm -f $STATE_FILE
+  notify-send "Screensaver enabled" "Screensaver will activate" -t 2000
+else
+  mkdir -p "$(dirname $STATE_FILE)"
+  touch $STATE_FILE
+  notify-send "Screensaver disabled" "Screensaver will not activate" -t 2000
+fi

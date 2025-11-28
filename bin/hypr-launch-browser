@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# hypr-launch-browser: Launch default web browser
+
+default_browser=$(xdg-settings get default-web-browser 2>/dev/null)
+if [ -z "$default_browser" ]; then
+  # Fallback to common browsers
+  for browser in chromium firefox brave; do
+    if command -v "$browser" &>/dev/null; then
+      browser_exec="$browser"
+      break
+    fi
+  done
+else
+  browser_exec=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' {~/.local,~/.nix-profile,/usr}/share/applications/$default_browser 2>/dev/null | head -1)
+fi
+
+if [[ $browser_exec =~ (firefox|zen|librewolf) ]]; then
+  private_flag="--private-window"
+else
+  private_flag="--incognito"
+fi
+
+exec setsid uwsm-app -- "$browser_exec" "${@/--private/$private_flag}"

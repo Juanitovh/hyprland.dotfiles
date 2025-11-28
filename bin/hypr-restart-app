@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# hypr-restart-app: Generic app restart utility
+# Usage: hypr-restart-app <app-name>
+
+if [ -z "$1" ]; then
+  echo "Usage: hypr-restart-app <app-name>"
+  exit 1
+fi
+
+pkill -x "$1"
+setsid uwsm-app -- "$1" >/dev/null 2>&1 &

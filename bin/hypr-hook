@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# hypr-hook: Execute user-defined hooks for Hyprland events
+# Usage: hypr-hook <hook-name> [args...]
+#
+# Hooks are stored in ~/.local/state/hyprland/hooks/
+# Example hooks: theme-set, post-update, font-set
+
+HOOK_NAME="$1"
+shift
+HOOK_ARGS="$@"
+
+if [[ -z "$HOOK_NAME" ]]; then
+  echo "Usage: hypr-hook <hook-name> [args...]"
+  echo "Available hooks:"
+  echo "  theme-set <theme-name>"
+  echo "  post-update"
+  echo "  font-set <font-name>"
+  exit 1
+fi
+
+HOOKS_DIR="$HOME/.local/state/hyprland/hooks"
+mkdir -p "$HOOKS_DIR"
+
+HOOK_FILE="$HOOKS_DIR/$HOOK_NAME"
+
+if [[ -f "$HOOK_FILE" && -x "$HOOK_FILE" ]]; then
+  "$HOOK_FILE" $HOOK_ARGS
+fi

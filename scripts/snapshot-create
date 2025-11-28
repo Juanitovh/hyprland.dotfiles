@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Create BTRFS snapshot using snapper
+
+DESCRIPTION="${1:-Manual snapshot created on $(date '+%Y-%m-%d %H:%M:%S')}"
+
+if ! command -v snapper >/dev/null; then
+  echo "Error: snapper is not installed"
+  echo "Install with: sudo pacman -S snapper"
+  exit 1
+fi
+
+# Check if snapper is configured
+if ! sudo snapper list-configs | grep -q root; then
+  echo "Error: Snapper is not configured for root filesystem"
+  echo "Run: sudo snapper -c root create-config /"
+  exit 1
+fi
+
+# Create snapshot
+echo "Creating snapshot: $DESCRIPTION"
+sudo snapper -c root create --description "$DESCRIPTION" --cleanup-algorithm number
+
+# List recent snapshots
+echo -e "\nRecent snapshots:"
+sudo snapper -c root list | tail -10
+
+echo -e "\nSnapshot created successfully!"

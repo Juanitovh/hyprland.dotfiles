@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Search packages interactively using fzf
+
+if ! command -v fzf >/dev/null; then
+  echo "Error: fzf is not installed"
+  echo "Install with: sudo pacman -S fzf"
+  exit 1
+fi
+
+fzf_args=(
+  --preview 'pacman -Sii {1}'
+  --preview-label='alt-p: toggle description, alt-j/k: scroll'
+  --preview-label-pos='bottom'
+  --preview-window 'down:65%:wrap'
+  --bind 'alt-p:toggle-preview'
+  --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+  --bind 'alt-k:preview-up,alt-j:preview-down'
+  --prompt='Search packages > '
+  --header='Type to search | ENTER: view details | ESC: cancel'
+)
+
+pacman -Slq | fzf "${fzf_args[@]}"

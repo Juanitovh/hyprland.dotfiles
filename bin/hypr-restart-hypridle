@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-restart-hypridle: Restart hypridle
+
+hypr-restart-app hypridle

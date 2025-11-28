@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hypr-launch-editor: Launch default editor
+
+EDITOR="${EDITOR:-nvim}"
+
+case "$EDITOR" in
+nvim | vim | nano | micro | hx | helix)
+  exec setsid uwsm-app -- xdg-terminal-exec "$EDITOR" "$@"
+  ;;
+*)
+  exec setsid uwsm-app -- "$EDITOR" "$@"
+  ;;
+esac

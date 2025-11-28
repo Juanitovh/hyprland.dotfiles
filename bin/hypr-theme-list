@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# hypr-theme-list: List all available Hyprland themes
+# Shows both built-in and custom git-installed themes
+
+BUILTIN_THEMES_DIR="$HOME/.config/hypr/themes"
+CUSTOM_THEMES_DIR="$HOME/.config/hypr-themes"
+
+echo "Built-in themes:"
+if [ -d "$BUILTIN_THEMES_DIR" ]; then
+  find "$BUILTIN_THEMES_DIR" -maxdepth 1 -type f -name "*.conf" | sort | while read -r path; do
+    basename "$path" .conf | sed -E 's/(^|-)([a-z])/\1\u\2/g; s/-/ /g' | sed 's/^/  /'
+  done
+fi
+
+if [ -d "$CUSTOM_THEMES_DIR" ]; then
+  echo ""
+  echo "Custom themes:"
+  find "$CUSTOM_THEMES_DIR" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) | sort | while read -r path; do
+    basename "$path" | sed -E 's/(^|-)([a-z])/\1\u\2/g; s/-/ /g' | sed 's/^/  /'
+  done
+fi
+
+# Show current theme
+echo ""
+echo "Current theme: $(hypr-theme-current)"

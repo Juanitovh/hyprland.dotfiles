@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Remove a webapp
+
+if [ -z "$1" ]; then
+  echo "Usage: hypr-webapp-remove <APP_NAME>"
+  exit 1
+fi
+
+APP_NAME="$1"
+DESKTOP_FILE="$HOME/.local/share/applications/$APP_NAME.desktop"
+ICON_DIR="$HOME/.local/share/applications/icons"
+
+if [ -f "$DESKTOP_FILE" ]; then
+  rm -f "$DESKTOP_FILE"
+  echo "Removed $APP_NAME desktop file"
+fi
+
+if [ -f "$ICON_DIR/$APP_NAME.png" ]; then
+  rm -f "$ICON_DIR/$APP_NAME.png"
+  echo "Removed $APP_NAME icon"
+fi
+
+echo "$APP_NAME webapp removed successfully"

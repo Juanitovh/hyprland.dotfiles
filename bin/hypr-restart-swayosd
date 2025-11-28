@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-restart-swayosd: Restart swayosd-server
+
+hypr-restart-app swayosd-server

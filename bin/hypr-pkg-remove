@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Interactive package remover using fzf
+
+if ! command -v fzf >/dev/null; then
+  echo "Error: fzf is not installed"
+  echo "Install with: sudo pacman -S fzf"
+  exit 1
+fi
+
+fzf_args=(
+  --multi
+  --preview 'pacman -Qi {1}'
+  --preview-label='alt-p: toggle description, alt-j/k: scroll, tab: multi-select'
+  --preview-label-pos='bottom'
+  --preview-window 'down:65%:wrap'
+  --bind 'alt-p:toggle-preview'
+  --bind 'alt-d:preview-half-page-down,alt-u:preview-half-page-up'
+  --bind 'alt-k:preview-up,alt-j:preview-down'
+  --color 'pointer:red,marker:red'
+  --prompt='Remove packages > '
+  --header='TAB: select multiple | ENTER: remove | ESC: cancel'
+)
+
+# Show explicitly installed packages
+pkg_names=$(pacman -Qqe | fzf "${fzf_args[@]}")
+
+if [[ -n "$pkg_names" ]]; then
+  echo ""
+  echo "The following packages will be removed:"
+  echo "$pkg_names"
+  echo ""
+  read -p "Continue? (y/n) " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "$pkg_names" | tr '\n' ' ' | xargs sudo pacman -Rns
+  else
+    echo "Cancelled"
+  fi
+else
+  echo "No packages selected"
+fi

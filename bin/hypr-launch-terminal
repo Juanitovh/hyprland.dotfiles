@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-launch-terminal: Launch default terminal
+
+exec uwsm-app -- xdg-terminal-exec "$@"

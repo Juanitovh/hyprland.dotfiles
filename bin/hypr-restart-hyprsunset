@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hypr-restart-hyprsunset: Restart hyprsunset (nightlight)
+
+hypr-restart-app hyprsunset

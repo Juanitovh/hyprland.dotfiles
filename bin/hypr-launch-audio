@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Launch Audio mixer TUI
+
+# Launch wiremix (PipeWire mixer TUI)
+if command -v wiremix >/dev/null; then
+  exec uwsm-app -- xdg-terminal-exec --app-id=org.hypr.wiremix -- wiremix
+else
+  notify-send "wiremix not installed" "Install with: sudo pacman -S wiremix"
+  exit 1
+fi

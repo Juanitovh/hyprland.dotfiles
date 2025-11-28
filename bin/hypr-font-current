@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# hypr-font-current: Show currently configured font
+
+if [ -f ~/.config/waybar/style.css ]; then
+  grep -oP 'font-family:\s*["'\'']?\K[^;"'\'']+' ~/.config/waybar/style.css | head -n1
+else
+  echo "No waybar config found"
+fi

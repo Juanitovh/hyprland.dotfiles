@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hypr-refresh-waybar: Reload waybar configuration
+
+echo "Reloading waybar..."
+hypr-restart-waybar
+notify-send "Waybar" "Configuration reloaded" -t 2000

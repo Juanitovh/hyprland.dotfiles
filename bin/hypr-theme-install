@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# hypr-theme-install: Install a new theme from a git repo
+# Usage: hypr-theme-install <git-repo-url>
+# Example: hypr-theme-install https://github.com/user/hypr-mytheme
+
+if [ -z "$1" ]; then
+  echo -e "\e[32mInstall custom Hyprland themes from git repositories\n\e[0m"
+  echo "Usage: hypr-theme-install <git-repo-url>"
+  echo "Example: hypr-theme-install https://github.com/user/hypr-mytheme"
+  exit 1
+fi
+
+REPO_URL="$1"
+
+# Validate URL format
+if [[ ! "$REPO_URL" =~ ^https?://|^git@ ]]; then
+  echo "Error: Invalid git repository URL"
+  exit 1
+fi
+
+THEMES_DIR="$HOME/.config/hypr-themes"
+mkdir -p "$THEMES_DIR"
+
+# Extract theme name from URL (remove omarchy-, hypr- prefixes and -theme suffix)
+THEME_NAME=$(basename "$REPO_URL" .git | sed -E 's/^(omarchy-|hypr-)?//; s/-theme$//')
+
+THEME_PATH="$THEMES_DIR/$THEME_NAME"
+
+# Remove existing theme if present
+if [ -d "$THEME_PATH" ]; then
+  echo "Theme '$THEME_NAME' already exists. Removing..."
+  rm -rf "$THEME_PATH"
+fi
+
+# Clone the repo
+echo "Installing theme '$THEME_NAME' from $REPO_URL..."
+if ! git clone "$REPO_URL" "$THEME_PATH"; then
+  echo "Error: Failed to clone theme repository."
+  exit 1
+fi
+
+echo "Theme '$THEME_NAME' installed successfully!"
+echo "Set it as active with: hypr-theme-set $THEME_NAME"
+
+# Track installed theme
+INSTALLED_LIST="$HOME/.local/state/hyprland/themes/installed.list"
+mkdir -p "$(dirname "$INSTALLED_LIST")"
+echo "$THEME_NAME" >> "$INSTALLED_LIST"
+sort -u "$INSTALLED_LIST" -o "$INSTALLED_LIST"
