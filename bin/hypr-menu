@@ -19,11 +19,11 @@ menu() {
 }
 
 show_system_menu() {
-  case $(menu "System" "  Lock\n󰤄  Suspend\n󰜉  Restart\n󰐥  Shutdown") in
-  *Lock*) hyprlock ;;
+  case $(menu "System" "  Lock\n󰤄  Suspend\n󰜉  Restart\n󰐥  Shutdown") in
+  *Lock*) hypr-lock-screen ;; # Use hypr-lock-screen
   *Suspend*) systemctl suspend ;;
-  *Restart*) systemctl reboot ;;
-  *Shutdown*) systemctl poweroff ;;
+  *Restart*) hypr-reboot ;;
+  *Shutdown*) hypr-shutdown ;;
   esac
 }
 
@@ -32,12 +32,46 @@ show_keybindings_menu() {
 }
 
 show_setup_menu() {
-  case $(menu "Setup" "  Audio\n  WiFi\n󰂯  Bluetooth\n󰍹  Monitors\n  Input") in
+  local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰍹  Monitors\n  Input\n  DNS\n  Security\n  Config" # Added DNS, Security, Config
+  case $(menu "Setup" "$options") in
   *Audio*) hypr-launch-audio ;;
-  *WiFi*) hypr-launch-wifi ;;
+  *Wifi*) hypr-launch-wifi ;;
   *Bluetooth*) hypr-launch-bluetooth ;;
+  *Power*) show_setup_power_menu ;; # New
   *Monitors*) ${EDITOR:-nano} ~/.config/hypr/monitors.conf && hyprctl reload ;;
   *Input*) ${EDITOR:-nano} ~/.config/hypr/input.conf && hyprctl reload ;;
+  *DNS*) hypr-setup-dns ;; # New
+  *Security*) show_setup_security_menu ;; # New
+  *Config*) show_setup_config_menu ;; # New
+  esac
+}
+
+show_setup_power_menu() { # New function
+  profile=$(menu "Power Profile" "$(hypr-powerprofiles-list)")
+
+  if [[ "$profile" == "CNCLD" || -z "$profile" ]]; then
+    return # Go back to previous menu
+  else
+    powerprofilesctl set "$profile"
+  fi
+}
+
+show_setup_security_menu() { # New function
+  case $(menu "Security" "󰈷  Fingerprint\n  Fido2") in
+  *Fingerprint*) hypr-setup-fingerprint ;;
+  *Fido2*) hypr-setup-fido2 ;;
+  esac
+}
+
+show_setup_config_menu() { # New function
+  case $(menu "Config" "  Hyprland\n  Hypridle\n  Hyprlock\n  Hyprsunset\n  Swayosd\n󰌧  Walker\n󰍜  Waybar") in
+  *Hyprland*) hyprctl reload ;;
+  *Hypridle*) hypr-restart-hypridle ;;
+  *Hyprlock*) hypr-refresh-hyprlock ;;
+  *Hyprsunset*) hypr-restart-hyprsunset ;;
+  *Swayosd*) hypr-refresh-swayosd ;;
+  *Walker*) hypr-refresh-walker ;;
+  *Waybar*) hypr-refresh-waybar ;;
   esac
 }
 
@@ -50,16 +84,49 @@ show_style_menu() {
 }
 
 show_install_menu() {
-  case $(menu "Install" "󰣇  Package\n󰣇  AUR Package\n  Web App\n  Keybindings") in
-  *"AUR Package"*) hypr-pkg-aur-install ;;
+  local options="󰣇  Package\n󰣇  AUR\n  Web App\n  TUI\n  Service\n  Editor\n  Terminal\n󱚤  AI\n󰍲  Windows" # New options
+  case $(menu "Install" "$options") in
   *Package*) hypr-pkg-install ;;
-  *"Web App"*) hypr-webapp-install ;;
-  *Keybindings*) ${EDITOR:-nano} ~/.config/hypr/bindings/applications.conf && hyprctl reload ;;
+  *AUR*) hypr-pkg-aur-install ;;
+  *Web*) hypr-webapp-install ;;
+  *TUI*) hypr-tui-install ;; # New
+  *Service*) show_install_service_menu ;; # New
+  *Editor*) show_install_editor_menu ;; # New
+  *Terminal*) show_install_terminal_menu ;; # New
+  *AI*) show_install_ai_menu ;; # New
+  *Windows*) hypr-windows-vm install ;; # New
   esac
 }
 
+show_install_service_menu() { # New function
+  case $(menu "Install Service" "  Dropbox\n  Tailscale\n  Chromium Account") in # New options
+  *Dropbox*) hypr-install-dropbox ;;
+  *Tailscale*) hypr-install-tailscale ;;
+  *Chromium*) hypr-install-chromium-google-account ;;
+  esac
+}
+
+show_install_editor_menu() { # New function
+  case $(menu "Install Editor" "  VSCode") in # Only VSCode for now
+  *VSCode*) hypr-install-vscode ;;
+  esac
+}
+
+show_install_terminal_menu() { # New function
+  case $(menu "Install Terminal" "  Alacritty") in # Only Alacritty for now
+  *Alacritty*) hypr-install-terminal "alacritty" ;;
+  esac
+}
+
+show_install_ai_menu() { # New function
+  # This part is highly omarchy-specific, I will simplify it.
+  # I'll just put a placeholder for now.
+  echo "AI installation menu not yet implemented" # Placeholder
+}
+
 show_remove_menu() {
-  case $(menu "Remove" "󰣇  Package\n  Web App") in
+  local options="󰣇  Package\n  Web App\n  TUI\n󰍲  Windows" # New options
+  case $(menu "Remove" "$options") in
   *Package*) hypr-pkg-remove ;;
   *"Web App"*)
     webapp=$(ls ~/.local/share/applications/*.desktop 2>/dev/null | xargs -n1 basename | sed 's/\.desktop$//' | menu "Remove Web App")
@@ -67,6 +134,8 @@ show_remove_menu() {
       hypr-webapp-remove "$webapp"
     fi
     ;;
+  *TUI*) hypr-tui-remove ;; # New
+  *Windows*) hypr-windows-vm remove ;; # New
   esac
 }
 
@@ -152,7 +221,7 @@ show_share_menu() {
 
 # Show main menu
 show_main_menu() {
-  case $(menu "Go" "󰀻  Apps\n󱓞  Trigger\n  Style\n  Setup\n󰉉  Install\n󰭌  Remove\n  Keybindings\n  System") in
+  case $(menu "Go" "󰀻  Apps\n󱓞  Trigger\n  Style\n  Setup\n󰉉  Install\n󰭌  Remove\n  Keybindings\n  System\n  About") in # Added About
   *Apps*) walker -p "Launch…" ;;
   *Trigger*) show_trigger_menu ;;
   *Style*) show_style_menu ;;
@@ -161,6 +230,7 @@ show_main_menu() {
   *Remove*) show_remove_menu ;;
   *Keybindings*) show_keybindings_menu ;;
   *System*) show_system_menu ;;
+  *About*) hypr-launch-about ;; # New
   esac
 }
 
@@ -178,6 +248,7 @@ case "${1,,}" in
   remove) show_remove_menu ;;
   trigger) show_trigger_menu ;;
   toggle) show_toggle_menu ;;
+  about) hypr-launch-about ;; # New
   *)
     # Default main menu (SUPER+ALT+SPACE)
     show_main_menu

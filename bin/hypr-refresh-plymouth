@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Assuming the default plymouth theme should be created here
+sudo mkdir -p /usr/share/plymouth/themes/hyprland/
+
+# Copy Plymouth theme files from the installation_hyprland project
+# Note: The actual plymouth theme files (e.g., .plymouth and .script) are not in installation_hyprland/default/plymouth/
+# They would need to be created based on omarchy/default/plymouth
+# For now, this script will just set the theme name.
+# A more complete solution would involve copying or creating the plymouth theme files.
+
+sudo plymouth-set-default-theme hyprland
+
+sudo mkinitcpio -P

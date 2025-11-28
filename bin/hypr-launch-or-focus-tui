@@ -1,0 +1,6 @@
+#!/bin/bash
+
+APP_ID="org.hypr.$(basename $1)"
+LAUNCH_COMMAND="hypr-launch-tui $@"
+
+exec hypr-launch-or-focus "$APP_ID" "$LAUNCH_COMMAND"

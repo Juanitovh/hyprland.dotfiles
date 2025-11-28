@@ -34,6 +34,7 @@ CORE_PACKAGES=(
   hyprpaper
   xdg-desktop-portal-hyprland
   uwsm
+  linux-headers
 )
 
 # Additional Wayland tools
@@ -75,6 +76,17 @@ UTILITIES=(
   networkmanager
   network-manager-applet
   xmlstarlet      # XML manipulation for fontconfig
+  python-terminaltexteffects # For screensaver
+  inxi            # System information for debug
+  expac           # Package information for debug
+  docker          # For containerized databases
+  docker-compose  # For containerized databases
+  libfido2        # For FIDO2 authentication
+  pam-u2f         # For FIDO2 authentication
+  fprintd         # For fingerprint authentication
+  usbutils        # For fingerprint hardware detection
+  freerdp         # For Windows VM RDP client
+  openbsd-netcat  # For Windows VM network checks
 )
 
 # TUI apps for system management (none available in official repos)
@@ -124,6 +136,8 @@ AUR_PACKAGES=(
   impala         # WiFi/Network TUI
   wiremix        # Audio mixer TUI
   lazydocker     # Docker TUI manager
+  asdcontrol-git # Apple display brightness control
+  visual-studio-code-bin # VSCode
 )
 
 ALL_PACKAGES=(

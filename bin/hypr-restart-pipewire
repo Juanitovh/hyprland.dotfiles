@@ -1,6 +1,4 @@
 #!/bin/bash
 
-# hypr-restart-pipewire: Restart PipeWire audio service
-
-echo "Restarting pipewire audio service..."
+echo -e "Restarting pipewire audio service...\n"
 systemctl --user restart pipewire.service

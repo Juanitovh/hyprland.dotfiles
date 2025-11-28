@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# hypr-refresh-walker: Reload walker configuration
+# Ensure walker is set to autostart
+mkdir -p ~/.config/autostart/
+cp /home/cactus/my_omarchy/installation_hyprland/autostart/walker.desktop ~/.config/autostart/
 
-echo "Reloading walker..."
+hypr-refresh-config walker/config.toml
+hypr-refresh-config elephant/calc.toml
+hypr-refresh-config elephant/desktopapplications.toml
 hypr-restart-walker
-notify-send "Walker" "Configuration reloaded" -t 2000
