@@ -76,7 +76,6 @@ UTILITIES=(
   networkmanager
   network-manager-applet
   xmlstarlet      # XML manipulation for fontconfig
-  python-terminaltexteffects # For screensaver
   inxi            # System information for debug
   expac           # Package information for debug
   docker          # For containerized databases
@@ -138,6 +137,7 @@ AUR_PACKAGES=(
   lazydocker     # Docker TUI manager
   asdcontrol-git # Apple display brightness control
   visual-studio-code-bin # VSCode
+  python-terminaltexteffects # For screensaver
 )
 
 ALL_PACKAGES=(
