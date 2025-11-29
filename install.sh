@@ -139,6 +139,8 @@ AUR_PACKAGES=(
   asdcontrol-git # Apple display brightness control
   visual-studio-code-bin # VSCode
   python-terminaltexteffects # For screensaver
+  elephant-desktopapplications-bin  # Desktop app search backend
+  elephant-clipboard-bin      # Clipboard history backend
 )
 
 ALL_PACKAGES=(

@@ -399,31 +399,41 @@ This will check all components and provide specific fixes.
 
 ### SUPER+SPACE shows nothing (walker not working)
 
-**Symptoms:** Pressing SUPER+SPACE shows blank window or nothing happens
+**Symptoms:** Pressing SUPER+SPACE shows blank window or "nothing found"
 
 **Fixes:**
 ```bash
-# 1. Check if walker is installed
+# 1. Check if elephant and walker are installed
+which elephant
 which walker
 
-# 2. If not installed, install it
+# 2. If elephant not installed, install it (REQUIRED for walker to work)
+yay -S elephant-desktopapplications-bin elephant-clipboard-bin
+
+# 3. If walker not installed, install it
 yay -S walker-bin
 
-# 3. Copy walker config
-mkdir -p ~/.config/walker
-cp ~/installation_hyprland/config/walker/config.toml ~/.config/walker/
+# 4. Check if services are running
+pgrep -x elephant
+pgrep -f "walker --gapplication-service"
 
-# 4. Start walker service
+# 5. Start elephant service FIRST
+setsid uwsm-app -- elephant &
+sleep 0.5
+
+# 6. Start walker service
 pkill walker
 uwsm-app -- walker --gapplication-service &
 sleep 1
 
-# 5. Test walker manually
+# 7. Test walker manually
 walker
 
-# 6. Reload Hyprland
+# 8. Reload Hyprland
 hyprctl reload
 ```
+
+**Note:** Elephant is the search backend required by walker. Without elephant running, walker will show "nothing found" even if apps are installed.
 
 ### SUPER+CTRL+V doesn't open clipboard (cliphist not working)
 

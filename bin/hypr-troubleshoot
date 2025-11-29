@@ -5,8 +5,25 @@ echo "Hyprland Installation Troubleshooting"
 echo "==================================="
 echo ""
 
+# Check walker and elephant
+echo "1. Checking walker & elephant..."
+
+# Check elephant first (required by walker)
+if command -v elephant &> /dev/null; then
+  echo "   ✓ elephant is installed"
+
+  if pgrep -x elephant > /dev/null; then
+    echo "   ✓ elephant service is running"
+  else
+    echo "   ✗ elephant service is NOT running"
+    echo "     Fix: setsid uwsm-app -- elephant &"
+  fi
+else
+  echo "   ✗ elephant is NOT installed"
+  echo "     Fix: yay -S elephant-desktopapplications-bin elephant-clipboard-bin"
+fi
+
 # Check walker
-echo "1. Checking walker..."
 if command -v walker &> /dev/null; then
   echo "   ✓ walker is installed"
 
@@ -138,7 +155,9 @@ echo "==================================="
 echo "Quick Fixes:"
 echo "==================================="
 echo ""
-echo "If walker shows nothing:"
+echo "If walker shows nothing (missing elephant):"
+echo "  setsid uwsm-app -- elephant &"
+echo "  sleep 0.5"
 echo "  pkill walker"
 echo "  uwsm-app -- walker --gapplication-service &"
 echo "  sleep 1"
