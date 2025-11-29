@@ -126,6 +126,7 @@ OPTIONAL=(
   gtk4           # Required for walker
   gtk4-layer-shell  # Required for walker
   protobuf       # Required for walker
+  plymouth       # Boot splash screen (optional, for smoother boot)
 )
 
 # AUR packages (installed separately with AUR helper)
