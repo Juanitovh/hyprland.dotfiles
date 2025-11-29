@@ -22,9 +22,7 @@ function GetEntries()
 
     if theme_name then
       -- find preview image
-      local find_preview_cmd = "find -L '
-        .. theme_path
-        .. "' -maxdepth 1 -type f \( -name 'preview.png' -o -name 'preview.jpg' \) 2>/dev/null | head -n 1"
+      local find_preview_cmd = "find -L '" .. theme_path .. "' -maxdepth 1 -type f \\( -name 'preview.png' -o -name 'preview.jpg' \\) 2>/dev/null | head -n 1"
       local preview_handle = io.popen(find_preview_cmd)
       local preview_path = nil
 
@@ -35,9 +33,7 @@ function GetEntries()
 
       -- If no preview found, use first image from backgrounds folder
       if not preview_path or preview_path == "" then
-        local bg_cmd = "find -L '
-          .. theme_path
-          .. "/backgrounds' -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -n 1"
+        local bg_cmd = "find -L '" .. theme_path .. "/backgrounds' -maxdepth 1 -type f \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \\) 2>/dev/null | head -n 1"
         local bg_handle = io.popen(bg_cmd)
         if bg_handle then
           preview_path = bg_handle:read("*l")
