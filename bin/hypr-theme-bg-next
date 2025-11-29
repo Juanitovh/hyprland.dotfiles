@@ -3,7 +3,13 @@
 # Cycle to next wallpaper
 
 # Get current wallpaper
-current_wall=$(hyprctl hyprpaper listactive 2>/dev/null | head -1 | awk '{print $NF}')
+if command -v swww >/dev/null && pgrep -x swww-daemon >/dev/null; then
+  # Using swww - get current wallpaper from swww query
+  current_wall=$(swww query 2>/dev/null | grep -oP 'image: \K.*' | head -1)
+else
+  # Using hyprpaper - get from hyprctl
+  current_wall=$(hyprctl hyprpaper listactive 2>/dev/null | head -1 | awk '{print $NF}')
+fi
 
 # Wallpaper directory
 WALLPAPER_DIR="$HOME/.local/state/hyprland/current/theme/backgrounds/"

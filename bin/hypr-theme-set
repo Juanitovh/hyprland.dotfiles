@@ -36,6 +36,9 @@ ln -nsf "$THEME_PATH" "$CURRENT_THEME_SYMLINK"
 
 # Create compatibility symlinks for hyprland and waybar
 ln -nsf "$THEME_PATH/hyprland.conf" "$HOME/.config/hypr/theme.conf"
+
+# Create current directory if it doesn't exist
+mkdir -p "$HOME/.config/hypr/current"
 ln -nsf "$THEME_PATH/waybar.css" "$HOME/.config/hypr/current/waybar.css"
 
 
