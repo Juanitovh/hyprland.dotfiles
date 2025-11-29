@@ -236,6 +236,13 @@ mkdir -p ~/.config/elephant/menus
 cp config/elephant/*.toml ~/.config/elephant/
 cp config/elephant/menus/*.lua ~/.config/elephant/menus/
 
+# Copy walker config
+mkdir -p ~/.config/walker/themes
+cp config/walker/config.toml ~/.config/walker/
+if [ -d "config/walker/themes" ]; then
+  cp -r config/walker/themes/* ~/.config/walker/themes/
+fi
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
@@ -329,6 +336,35 @@ else
   echo "WARNING: Root filesystem is not BTRFS. Snapshots will not be available."
 fi
 
+# Start walker service for app launcher
+echo ""
+echo "Starting walker service..."
+if command -v walker &> /dev/null; then
+  # Kill any existing walker instances
+  pkill walker 2>/dev/null || true
+
+  # Start walker as a background service
+  uwsm-app -- walker --gapplication-service &
+  sleep 1
+  echo "Walker service started"
+else
+  echo "WARNING: walker not installed. App launcher (SUPER+SPACE) will not work."
+  echo "Install with: yay -S walker-bin"
+fi
+
+# Restart elephant service if installed
+echo ""
+echo "Setting up elephant service..."
+if command -v elephant &> /dev/null; then
+  systemctl --user daemon-reload
+  systemctl --user restart elephant.service 2>/dev/null || true
+  systemctl --user enable elephant.service 2>/dev/null || true
+  echo "Elephant service configured"
+else
+  echo "WARNING: elephant not installed. Theme menu may not work."
+  echo "Elephant is optional - install manually if needed"
+fi
+
 # Enable services
 echo ""
 echo "Enabling system services..."
@@ -396,5 +432,16 @@ echo "  snapshot-restore  - Restore from snapshot"
 echo "  snapshot-list     - List all snapshots"
 echo ""
 echo "To start Hyprland, select 'Hyprland (uwsm-managed)' or similar from your display manager (Ly)."
+echo ""
+echo "Troubleshooting:"
+echo "  If SUPER+SPACE shows no apps:"
+echo "    1. Check walker is running: pgrep walker"
+echo "    2. Restart walker: pkill walker && uwsm-app -- walker --gapplication-service &"
+echo "    3. Test manually: walker"
+echo ""
+echo "  If theme menu shows 'waiting for elephant':"
+echo "    1. Check elephant is installed: which elephant"
+echo "    2. Test manually: elephant -m hyprthemes"
+echo "    3. Check for Lua errors: journalctl --user -u elephant"
 echo ""
 echo "Enjoy your new setup!"
