@@ -247,6 +247,10 @@ fi
 mkdir -p ~/.config/mako
 cp config/mako/config ~/.config/mako/
 
+# Copy swayosd config
+mkdir -p ~/.config/swayosd
+cp config/swayosd/* ~/.config/swayosd/
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
