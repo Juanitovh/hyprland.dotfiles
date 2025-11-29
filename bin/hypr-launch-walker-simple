@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Simple walker launcher without gapplication-service
+# Use this if the gapplication-service version has connection issues
+
+exec walker "$@"

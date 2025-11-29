@@ -243,6 +243,10 @@ if [ -d "config/walker/themes" ]; then
   cp -r config/walker/themes/* ~/.config/walker/themes/
 fi
 
+# Copy mako config
+mkdir -p ~/.config/mako
+cp config/mako/config ~/.config/mako/
+
 # Copy Hyprland configs
 cp -r config/hypr/* ~/.config/hypr/
 
@@ -343,13 +347,25 @@ if command -v walker &> /dev/null; then
   # Kill any existing walker instances
   pkill walker 2>/dev/null || true
 
-  # Start walker as a background service
-  uwsm-app -- walker --gapplication-service &
+  # Start walker as a background service with uwsm-app for proper session management
+  setsid uwsm-app -- walker --gapplication-service &
   sleep 1
   echo "Walker service started"
 else
   echo "WARNING: walker not installed. App launcher (SUPER+SPACE) will not work."
   echo "Install with: yay -S walker-bin"
+fi
+
+# Restart mako notification daemon
+echo ""
+echo "Restarting mako notification daemon..."
+if command -v mako &> /dev/null; then
+  pkill mako 2>/dev/null || true
+  setsid uwsm-app -- mako &
+  sleep 0.5
+  echo "Mako restarted with new config"
+else
+  echo "WARNING: mako not installed. Notifications will not work."
 fi
 
 # Restart elephant service if installed

@@ -4,8 +4,10 @@
 
 # Ensure walker service is running
 if ! pgrep -f "walker --gapplication-service" > /dev/null; then
+  # Start walker service with uwsm-app for proper session management
   setsid uwsm-app -- walker --gapplication-service &
   sleep 0.5
 fi
 
+# Launch walker UI directly (not through uwsm-app)
 exec walker --width 644 --maxheight 300 --minheight 300 "$@"

@@ -452,6 +452,29 @@ echo "test" | wl-copy
 walker -m clipboard
 ```
 
+### Notifications don't disappear
+
+**Symptoms:** Notifications stay on screen forever and don't auto-dismiss
+
+**Cause:** Mako config is missing or has no default-timeout set
+
+**Fixes:**
+```bash
+# 1. Copy mako config
+mkdir -p ~/.config/mako
+cp ~/installation_hyprland/config/mako/config ~/.config/mako/
+
+# 2. Restart mako
+pkill mako
+setsid uwsm-app -- mako &
+
+# Or use the helper script
+hypr-restart-mako
+
+# 3. Test it
+notify-send "Test" "This should disappear in 5 seconds"
+```
+
 ### Waybar not starting
 ```bash
 hypr-restart-waybar

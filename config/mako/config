@@ -1,0 +1,56 @@
+# Mako notification daemon configuration
+
+# Appearance
+width=420
+height=110
+padding=10
+border-size=2
+border-radius=8
+font=sans-serif 11
+background-color=#2e3440
+text-color=#d8dee9
+border-color=#88c0d0
+
+# Position
+anchor=top-right
+outer-margin=20
+
+# Behavior
+default-timeout=5000
+ignore-timeout=0
+max-visible=3
+layer=overlay
+
+# Icons
+max-icon-size=48
+icon-path=/usr/share/icons/hicolor
+
+# Grouping
+group-by=app-name
+
+# Actions
+on-button-left=dismiss
+on-button-middle=none
+on-button-right=dismiss-all
+on-touch=dismiss
+
+# App-specific rules
+[app-name=Spotify]
+invisible=1
+
+[urgency=low]
+default-timeout=3000
+
+[urgency=normal]
+default-timeout=5000
+
+[urgency=critical]
+default-timeout=0
+border-color=#bf616a
+
+# Do Not Disturb mode
+[mode=do-not-disturb]
+invisible=true
+
+[mode=do-not-disturb app-name=notify-send]
+invisible=false

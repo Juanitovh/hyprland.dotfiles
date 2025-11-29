@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Restart mako notification daemon
+
+echo "Restarting mako notification daemon..."
+
+# Kill existing mako
+pkill mako
+
+# Wait for it to stop
+sleep 0.3
+
+# Start mako with uwsm-app
+setsid uwsm-app -- mako &
+
+sleep 0.5
+
+echo "Mako restarted"
+notify-send "Mako Restarted" "Notification daemon has been reloaded"
