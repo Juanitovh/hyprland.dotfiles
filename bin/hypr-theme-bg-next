@@ -55,12 +55,13 @@ mkdir -p "$(dirname "$CURRENT_BACKGROUND_LINK")"
 ln -nsf "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
 
 # Apply wallpaper using available daemon
-if command -v swww >/dev/null && pgrep -x swww-daemon >/dev/null; then
-  swww img "$CURRENT_BACKGROUND_LINK" --transition-type fade
-elif command -v swaybg >/dev/null; then
+# Check swaybg first (matches our autostart)
+if pgrep -x swaybg >/dev/null || command -v swaybg >/dev/null; then
   # Relaunch swaybg with new background
   pkill -x swaybg
   setsid uwsm-app -- swaybg -i "$CURRENT_BACKGROUND_LINK" -m fill >/dev/null 2>&1 &
+elif command -v swww >/dev/null && pgrep -x swww-daemon >/dev/null; then
+  swww img "$CURRENT_BACKGROUND_LINK" --transition-type fade
 elif command -v hyprpaper >/dev/null; then
   hyprctl hyprpaper preload "$CURRENT_BACKGROUND_LINK"
   hyprctl hyprpaper wallpaper ",$CURRENT_BACKGROUND_LINK"
