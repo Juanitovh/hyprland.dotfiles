@@ -87,6 +87,8 @@ UTILITIES=(
   freerdp         # For Windows VM RDP client
   openbsd-netcat  # For Windows VM network checks
   xdg-utils       # For xdg-terminal-exec
+  gnome-themes-extra  # Adwaita GTK theme for nautilus
+  yaru-icon-theme     # Icon theme for nautilus
 )
 
 # TUI apps for system management (none available in official repos)
@@ -313,6 +315,23 @@ else
   echo "WARNING: Background directory not found at ~/.local/state/hyprland/current/theme/backgrounds"
 fi
 
+# Set initial GTK/GNOME theme for nautilus
+echo "Configuring GTK theme for Nautilus..."
+if command -v gsettings &>/dev/null; then
+  gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+  gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+  gsettings set org.gnome.desktop.interface icon-theme "Yaru-blue"
+
+  # Update icon cache
+  if [ -d /usr/share/icons/Yaru ]; then
+    sudo gtk-update-icon-cache /usr/share/icons/Yaru 2>/dev/null || true
+  fi
+
+  echo "GTK theme configured (dark mode with Yaru icons)"
+else
+  echo "WARNING: gsettings not available. GTK theme not configured."
+fi
+
 # Create browser policy directories if chromium or brave are installed
 if command -v chromium &>/dev/null; then
   sudo mkdir -p /etc/chromium/policies/managed 2>/dev/null || true
@@ -427,6 +446,18 @@ if command -v mako &> /dev/null; then
   echo "Mako restarted with new config"
 else
   echo "WARNING: mako not installed. Notifications will not work."
+fi
+
+# Start swayosd server for volume/brightness OSD
+echo ""
+echo "Starting swayosd server..."
+if command -v swayosd-server &> /dev/null; then
+  pkill swayosd-server 2>/dev/null || true
+  setsid uwsm-app -- swayosd-server &
+  sleep 0.5
+  echo "SwayOSD server started (volume/brightness indicators)"
+else
+  echo "WARNING: swayosd-server not installed. Volume/brightness keys will not show OSD."
 fi
 
 # Restart elephant service if installed
