@@ -99,7 +99,6 @@ SNAPSHOT_TOOLS=(
   snapper
   snap-pac
   grub-btrfs
-  plymouth  # Boot splash screen (required for mkinitcpio hook)
 )
 
 # Fonts
@@ -482,19 +481,6 @@ if command -v limine &>/dev/null; then
     echo "Continuing with basic snapper setup only..."
   fi
 
-  # Configure mkinitcpio hooks only if limine-mkinitcpio-hook was installed successfully
-  if pacman -Q limine-mkinitcpio-hook &>/dev/null; then
-    echo "Configuring mkinitcpio hooks with btrfs-overlayfs support..."
-    sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
-HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck btrfs-overlayfs)
-EOF
-  else
-    echo "limine-mkinitcpio-hook not installed, using standard hooks without btrfs-overlayfs..."
-    sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
-HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck)
-EOF
-  fi
-
   # Detect if using EFI or BIOS
   [[ -f /boot/EFI/limine/limine.conf ]] || [[ -f /boot/EFI/BOOT/limine.conf ]] && EFI=true
 
@@ -541,6 +527,24 @@ EOF
     if [[ -z "$CMDLINE" ]]; then
       echo "Warning: Could not extract cmdline from limine config, using default"
       CMDLINE="rw"
+    fi
+
+    # Configure mkinitcpio hooks ONLY if limine-mkinitcpio-hook was installed successfully
+    if pacman -Q limine-mkinitcpio-hook &>/dev/null; then
+      echo "Configuring mkinitcpio hooks with btrfs-overlayfs support..."
+
+      # Build hooks list - only add plymouth if it's installed
+      HOOKS_LIST="base udev"
+      if pacman -Q plymouth &>/dev/null; then
+        HOOKS_LIST="$HOOKS_LIST plymouth"
+      fi
+      HOOKS_LIST="$HOOKS_LIST keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck btrfs-overlayfs"
+
+      sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<EOF >/dev/null
+HOOKS=($HOOKS_LIST)
+EOF
+    else
+      echo "Skipping mkinitcpio hooks configuration (limine-mkinitcpio-hook not installed)"
     fi
 
     # Create limine configuration
