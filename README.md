@@ -391,6 +391,67 @@ Find monitor names: `hyprctl monitors`
 
 ## Troubleshooting
 
+### Run the troubleshoot script first
+```bash
+hypr-troubleshoot
+```
+This will check all components and provide specific fixes.
+
+### SUPER+SPACE shows nothing (walker not working)
+
+**Symptoms:** Pressing SUPER+SPACE shows blank window or nothing happens
+
+**Fixes:**
+```bash
+# 1. Check if walker is installed
+which walker
+
+# 2. If not installed, install it
+yay -S walker-bin
+
+# 3. Copy walker config
+mkdir -p ~/.config/walker
+cp ~/installation_hyprland/config/walker/config.toml ~/.config/walker/
+
+# 4. Start walker service
+pkill walker
+uwsm-app -- walker --gapplication-service &
+sleep 1
+
+# 5. Test walker manually
+walker
+
+# 6. Reload Hyprland
+hyprctl reload
+```
+
+### SUPER+CTRL+V doesn't open clipboard (cliphist not working)
+
+**Symptoms:** Clipboard manager doesn't open or shows empty
+
+**Fixes:**
+```bash
+# 1. Check if cliphist is installed
+which cliphist
+
+# 2. If not installed
+sudo pacman -S cliphist wl-clipboard
+
+# 3. Start clipboard watcher
+pkill wl-paste
+wl-paste --type text --watch cliphist store &
+wl-paste --type image --watch cliphist store &
+
+# 4. Test clipboard has history
+cliphist list
+
+# 5. If empty, copy something first
+echo "test" | wl-copy
+
+# 6. Try clipboard manager
+walker -m clipboard
+```
+
 ### Waybar not starting
 ```bash
 hypr-restart-waybar

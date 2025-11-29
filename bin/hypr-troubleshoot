@@ -1,0 +1,155 @@
+#!/bin/bash
+
+echo "==================================="
+echo "Hyprland Installation Troubleshooting"
+echo "==================================="
+echo ""
+
+# Check walker
+echo "1. Checking walker..."
+if command -v walker &> /dev/null; then
+  echo "   ✓ walker is installed"
+
+  if pgrep -f "walker --gapplication-service" > /dev/null; then
+    echo "   ✓ walker service is running"
+  else
+    echo "   ✗ walker service is NOT running"
+    echo "     Fix: uwsm-app -- walker --gapplication-service &"
+  fi
+
+  if [ -f ~/.config/walker/config.toml ]; then
+    echo "   ✓ walker config exists"
+  else
+    echo "   ✗ walker config NOT found"
+    echo "     Fix: mkdir -p ~/.config/walker && cp installation_hyprland/config/walker/config.toml ~/.config/walker/"
+  fi
+else
+  echo "   ✗ walker is NOT installed"
+  echo "     Fix: yay -S walker-bin"
+fi
+
+echo ""
+
+# Check cliphist
+echo "2. Checking clipboard manager..."
+if command -v cliphist &> /dev/null; then
+  echo "   ✓ cliphist is installed"
+
+  if pgrep -f "wl-paste.*cliphist" > /dev/null; then
+    echo "   ✓ cliphist watcher is running"
+  else
+    echo "   ✗ cliphist watcher is NOT running"
+    echo "     Fix: Add to autostart.conf:"
+    echo "     exec-once = wl-paste --type text --watch cliphist store"
+    echo "     exec-once = wl-paste --type image --watch cliphist store"
+  fi
+
+  CLIP_COUNT=$(cliphist list 2>/dev/null | wc -l)
+  echo "   ℹ Clipboard history: $CLIP_COUNT items"
+else
+  echo "   ✗ cliphist is NOT installed"
+  echo "     Fix: sudo pacman -S cliphist"
+fi
+
+echo ""
+
+# Check desktop applications
+echo "3. Checking desktop applications..."
+APP_COUNT=$(find ~/.local/share/applications /usr/share/applications -name "*.desktop" 2>/dev/null | wc -l)
+echo "   ℹ Found $APP_COUNT .desktop files"
+
+if [ $APP_COUNT -lt 10 ]; then
+  echo "   ⚠ Very few applications found!"
+fi
+
+echo ""
+
+# Check elephant
+echo "4. Checking elephant..."
+if command -v elephant &> /dev/null; then
+  echo "   ✓ elephant is installed"
+
+  if systemctl --user is-active elephant.service &> /dev/null; then
+    echo "   ✓ elephant service is running"
+  else
+    echo "   ✗ elephant service is NOT running"
+    echo "     Fix: systemctl --user start elephant.service"
+  fi
+
+  if [ -f ~/.config/elephant/menus/hypr_themes.lua ]; then
+    echo "   ✓ elephant theme menu exists"
+
+    # Test Lua syntax
+    if lua -e "dofile('$HOME/.config/elephant/menus/hypr_themes.lua')" 2>/dev/null; then
+      echo "   ✓ Lua syntax is valid"
+    else
+      echo "   ✗ Lua syntax error in theme menu"
+      echo "     Fix: cp installation_hyprland/config/elephant/menus/hypr_themes.lua ~/.config/elephant/menus/"
+    fi
+  else
+    echo "   ✗ elephant theme menu NOT found"
+  fi
+else
+  echo "   ✗ elephant is NOT installed (optional)"
+  echo "     Info: elephant is optional, used for theme menu"
+fi
+
+echo ""
+
+# Check Hyprland config
+echo "5. Checking Hyprland configuration..."
+if [ -f ~/.config/hypr/hyprland.conf ]; then
+  echo "   ✓ hyprland.conf exists"
+
+  if [ -f ~/.config/hypr/bindings/clipboard.conf ]; then
+    echo "   ✓ clipboard bindings exist"
+  else
+    echo "   ✗ clipboard bindings NOT found"
+  fi
+
+  if [ -f ~/.config/hypr/autostart.conf ]; then
+    echo "   ✓ autostart.conf exists"
+  else
+    echo "   ✗ autostart.conf NOT found"
+  fi
+else
+  echo "   ✗ hyprland.conf NOT found"
+  echo "     Fix: Run ./install.sh"
+fi
+
+echo ""
+
+# Test keybindings
+echo "6. Testing keybindings..."
+if hyprctl binds | grep -q "SUPER, SPACE"; then
+  echo "   ✓ SUPER+SPACE is bound"
+else
+  echo "   ✗ SUPER+SPACE not found in bindings"
+fi
+
+if hyprctl binds | grep -q "SUPER CTRL, V"; then
+  echo "   ✓ SUPER+CTRL+V is bound"
+else
+  echo "   ✗ SUPER+CTRL+V not found in bindings"
+fi
+
+echo ""
+echo "==================================="
+echo "Quick Fixes:"
+echo "==================================="
+echo ""
+echo "If walker shows nothing:"
+echo "  pkill walker"
+echo "  uwsm-app -- walker --gapplication-service &"
+echo "  sleep 1"
+echo "  walker"
+echo ""
+echo "If clipboard doesn't work:"
+echo "  pkill wl-paste"
+echo "  wl-paste --type text --watch cliphist store &"
+echo "  wl-paste --type image --watch cliphist store &"
+echo "  cliphist list"
+echo ""
+echo "Reload Hyprland config:"
+echo "  hyprctl reload"
+echo ""
