@@ -288,8 +288,14 @@ ln -snf ~/.local/state/hyprland/current/theme/hyprland.conf ~/.config/hypr/theme
 mkdir -p ~/.config/btop/themes
 ln -snf ~/.local/state/hyprland/current/theme/btop.theme ~/.config/btop/themes/current.theme
 
+# Mako config - link to theme's mako.ini file
 mkdir -p ~/.config/mako
-ln -snf ~/.local/state/hyprland/current/theme/mako.ini ~/.config/mako/config
+if [ -f ~/.local/state/hyprland/current/theme/mako.ini ]; then
+  ln -snf ~/.local/state/hyprland/current/theme/mako.ini ~/.config/mako/config
+else
+  echo "WARNING: Theme mako.ini not found, using default config"
+  cp config/mako/config ~/.config/mako/config
+fi
 
 # Set initial background
 echo "Setting up initial wallpaper..."
@@ -445,8 +451,19 @@ sudo systemctl enable NetworkManager
 echo ""
 echo "Configuring boot menu with snapshot support..."
 if command -v limine &>/dev/null; then
-  # Install limine snapper integration packages
-  sudo pacman -S --noconfirm --needed limine-snapper-sync limine-mkinitcpio-hook
+  # Check if limine-snapper packages are available (they may be in AUR)
+  echo "Checking for limine-snapper integration packages..."
+  if yay -Si limine-snapper-sync &>/dev/null && yay -Si limine-mkinitcpio-hook &>/dev/null; then
+    echo "Installing limine-snapper integration packages from AUR..."
+    yay -S --noconfirm --needed limine-snapper-sync limine-mkinitcpio-hook || {
+      echo "WARNING: Failed to install limine-snapper packages. Snapshot boot menu will not work."
+      echo "You can try installing manually: yay -S limine-snapper-sync limine-mkinitcpio-hook"
+    }
+  else
+    echo "WARNING: limine-snapper-sync and limine-mkinitcpio-hook not found in repositories."
+    echo "Snapshot boot menu integration will not be available."
+    echo "Continuing with basic snapper setup only..."
+  fi
 
   # Configure mkinitcpio hooks
   sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
@@ -456,7 +473,7 @@ EOF
   # Detect if using EFI or BIOS
   [[ -f /boot/EFI/limine/limine.conf ]] || [[ -f /boot/EFI/BOOT/limine.conf ]] && EFI=true
 
-  # Find limine config location
+  # Find limine config location (check USB location first, then regular EFI location)
   if [[ -n "$EFI" ]]; then
     if [[ -f /boot/EFI/BOOT/limine.conf ]]; then
       limine_config="/boot/EFI/BOOT/limine.conf"
@@ -467,16 +484,42 @@ EOF
     limine_config="/boot/limine/limine.conf"
   fi
 
-  # Get current kernel command line
-  if [[ -f "$limine_config" ]]; then
-    CMDLINE=$(grep "^[[:space:]]*cmdline:" "$limine_config" | head -1 | sed 's/^[[:space:]]*cmdline:[[:space:]]*//')
-  else
-    echo "Warning: Limine config not found, using default cmdline"
-    CMDLINE="rw"
+  # Double-check and skip limine setup if we don't have a config file
+  if [[ ! -f "$limine_config" ]]; then
+    echo "WARNING: Limine config not found at $limine_config"
+    echo "Skipping limine bootloader configuration. Using basic snapper setup only."
+
+    # Still configure snapper even without limine integration
+    if findmnt -n -o FSTYPE / | grep -q btrfs; then
+      if ! sudo snapper list-configs 2>/dev/null | grep -q "root"; then
+        sudo snapper -c root create-config /
+      fi
+      if ! sudo snapper list-configs 2>/dev/null | grep -q "home"; then
+        sudo snapper -c home create-config /home
+      fi
+      # Tweak snapper settings
+      sudo sed -i 's/^TIMELINE_CREATE="yes"/TIMELINE_CREATE="no"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+      sudo sed -i 's/^NUMBER_LIMIT="50"/NUMBER_LIMIT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+      sudo sed -i 's/^NUMBER_LIMIT_IMPORTANT="10"/NUMBER_LIMIT_IMPORTANT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+    fi
+
+    # Skip the rest of limine setup
+    echo "Snapper configured without boot menu integration."
+    limine_config=""
   fi
 
-  # Create limine configuration
-  sudo tee /etc/default/limine <<EOF >/dev/null
+  # Only continue with limine setup if we have a valid config
+  if [[ -n "$limine_config" ]]; then
+    # Get current kernel command line
+    CMDLINE=$(grep "^[[:space:]]*cmdline:" "$limine_config" | head -1 | sed 's/^[[:space:]]*cmdline:[[:space:]]*//')
+
+    if [[ -z "$CMDLINE" ]]; then
+      echo "Warning: Could not extract cmdline from limine config, using default"
+      CMDLINE="rw"
+    fi
+
+    # Create limine configuration
+    sudo tee /etc/default/limine <<EOF >/dev/null
 TARGET_OS_NAME="Hyprland"
 
 ESP_PATH="/boot"
@@ -499,13 +542,13 @@ MAX_SNAPSHOT_ENTRIES=5
 SNAPSHOT_FORMAT_CHOICE=5
 EOF
 
-  # Disable UKI and fallback for BIOS systems
-  if [[ -z $EFI ]]; then
-    sudo sed -i '/^ENABLE_UKI=/d; /^ENABLE_LIMINE_FALLBACK=/d' /etc/default/limine
-  fi
+    # UKI and EFI fallback are EFI only
+    if [[ -z $EFI ]]; then
+      sudo sed -i '/^ENABLE_UKI=/d; /^ENABLE_LIMINE_FALLBACK=/d' /etc/default/limine
+    fi
 
-  # Create limine boot menu configuration
-  sudo tee /boot/limine.conf <<'EOF' >/dev/null
+    # We overwrite the whole thing knowing the limine-update will add the entries for us
+    sudo tee /boot/limine.conf <<'EOF' >/dev/null
 ### Read more at config document: https://github.com/limine-bootloader/limine/blob/trunk/CONFIG.md
 #timeout: 3
 default_entry: 2
@@ -527,42 +570,47 @@ term_background_bright: 24283b
 
 EOF
 
-  # Remove old config if it's not /boot/limine.conf
-  if [[ "$limine_config" != "/boot/limine.conf" ]] && [[ -f "$limine_config" ]]; then
-    sudo rm "$limine_config"
-  fi
+    # Remove the original config file if it's not /boot/limine.conf
+    if [[ "$limine_config" != "/boot/limine.conf" ]] && [[ -f "$limine_config" ]]; then
+      sudo rm "$limine_config"
+    fi
 
-  # Configure snapper
-  if ! sudo snapper list-configs 2>/dev/null | grep -q "root"; then
-    sudo snapper -c root create-config /
-  fi
+    # Configure snapper (if not already configured in the error path above)
+    if ! sudo snapper list-configs 2>/dev/null | grep -q "root"; then
+      sudo snapper -c root create-config /
+    fi
 
-  if ! sudo snapper list-configs 2>/dev/null | grep -q "home"; then
-    sudo snapper -c home create-config /home
-  fi
+    if ! sudo snapper list-configs 2>/dev/null | grep -q "home"; then
+      sudo snapper -c home create-config /home
+    fi
 
-  # Tweak snapper settings
-  sudo sed -i 's/^TIMELINE_CREATE="yes"/TIMELINE_CREATE="no"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
-  sudo sed -i 's/^NUMBER_LIMIT="50"/NUMBER_LIMIT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
-  sudo sed -i 's/^NUMBER_LIMIT_IMPORTANT="10"/NUMBER_LIMIT_IMPORTANT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+    # Tweak snapper settings
+    sudo sed -i 's/^TIMELINE_CREATE="yes"/TIMELINE_CREATE="no"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+    sudo sed -i 's/^NUMBER_LIMIT="50"/NUMBER_LIMIT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+    sudo sed -i 's/^NUMBER_LIMIT_IMPORTANT="10"/NUMBER_LIMIT_IMPORTANT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
 
-  # Enable limine-snapper-sync service
-  sudo systemctl enable limine-snapper-sync.service
+    # Enable limine-snapper-sync service (if package was installed successfully)
+    if systemctl list-unit-files limine-snapper-sync.service &>/dev/null; then
+      sudo systemctl enable limine-snapper-sync.service
+    fi
 
-  # Re-enable mkinitcpio hooks
-  if [ -f /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled ]; then
-    sudo mv /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled /usr/share/libalpm/hooks/90-mkinitcpio-install.hook
-  fi
+    # Re-enable mkinitcpio hooks
+    echo "Re-enabling mkinitcpio hooks..."
+    if [ -f /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled ]; then
+      sudo mv /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled /usr/share/libalpm/hooks/90-mkinitcpio-install.hook
+    fi
 
-  if [ -f /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled ]; then
-    sudo mv /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook
-  fi
+    if [ -f /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled ]; then
+      sudo mv /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook
+    fi
+    echo "mkinitcpio hooks re-enabled"
 
-  # Update limine bootloader
-  echo "Updating bootloader..."
-  sudo limine-update
+    # Update limine bootloader
+    echo "Updating bootloader..."
+    sudo limine-update
 
-  echo "Boot menu with snapshots configured successfully!"
+    echo "Boot menu with snapshots configured successfully!"
+  fi  # End of limine_config check
 else
   echo "Warning: Limine bootloader not found. Skipping snapshot boot menu setup."
   echo "If you want snapshot boot menu, install limine bootloader first."
