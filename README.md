@@ -539,8 +539,9 @@ yay -Q | grep elephant
 # 2. Install required provider packages
 yay -S elephant-desktopapplications-bin elephant-clipboard-bin
 
-# 3. Restart elephant service
-systemctl --user restart elephant
+# 3. Setup elephant service (creates systemd service automatically)
+elephant service enable
+systemctl --user start elephant.service
 
 # Wait for indexing
 sleep 2

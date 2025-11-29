@@ -206,14 +206,17 @@ else
   echo "You can install them manually later with: yay -S ${AUR_PACKAGES[*]}"
 fi
 
-# Copy systemd user service for elephant
-mkdir -p ~/.config/systemd/user
-cp config/systemd/user/elephant.service ~/.config/systemd/user/
-
-# Enable elephant service
-echo "Enabling elephant service..."
-systemctl --user daemon-reload
-systemctl --user enable --now elephant.service
+# Setup elephant service
+# Use elephant's built-in service management (creates systemd service automatically)
+echo "Setting up elephant service..."
+if command -v elephant &> /dev/null; then
+  elephant service enable 2>/dev/null || true
+  systemctl --user start elephant.service 2>/dev/null || true
+  echo "Elephant service configured"
+else
+  echo "WARNING: elephant not installed. Service setup will be skipped."
+  echo "Install elephant providers with: yay -S elephant-desktopapplications-bin elephant-clipboard-bin"
+fi
 
 
 # Copy configuration files
