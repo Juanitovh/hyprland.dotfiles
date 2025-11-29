@@ -99,6 +99,7 @@ SNAPSHOT_TOOLS=(
   snapper
   snap-pac
   grub-btrfs
+  plymouth  # Boot splash screen (required for mkinitcpio hook)
 )
 
 # Fonts
@@ -447,6 +448,22 @@ echo "Enabling system services..."
 sudo systemctl enable bluetooth
 sudo systemctl enable NetworkManager
 
+# Configure Plymouth boot splash
+echo ""
+echo "Configuring Plymouth boot splash..."
+if command -v plymouth &>/dev/null; then
+  # Set a default theme (bgrt for systems with vendor logo, or spinner)
+  if plymouth-set-default-theme 2>/dev/null | grep -q "bgrt"; then
+    echo "Plymouth already configured with bgrt theme"
+  else
+    # Try bgrt first (shows vendor logo), fallback to spinner
+    sudo plymouth-set-default-theme bgrt 2>/dev/null || sudo plymouth-set-default-theme spinner 2>/dev/null || true
+    echo "Plymouth theme configured"
+  fi
+else
+  echo "Plymouth not installed, skipping boot splash configuration"
+fi
+
 # Setup Limine bootloader with snapper snapshot menu
 echo ""
 echo "Configuring boot menu with snapshot support..."
@@ -465,10 +482,18 @@ if command -v limine &>/dev/null; then
     echo "Continuing with basic snapper setup only..."
   fi
 
-  # Configure mkinitcpio hooks
-  sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
+  # Configure mkinitcpio hooks only if limine-mkinitcpio-hook was installed successfully
+  if pacman -Q limine-mkinitcpio-hook &>/dev/null; then
+    echo "Configuring mkinitcpio hooks with btrfs-overlayfs support..."
+    sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
 HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck btrfs-overlayfs)
 EOF
+  else
+    echo "limine-mkinitcpio-hook not installed, using standard hooks without btrfs-overlayfs..."
+    sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
+HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck)
+EOF
+  fi
 
   # Detect if using EFI or BIOS
   [[ -f /boot/EFI/limine/limine.conf ]] || [[ -f /boot/EFI/BOOT/limine.conf ]] && EFI=true
