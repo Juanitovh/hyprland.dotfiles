@@ -265,13 +265,50 @@ mkdir -p ~/.config/waybar
 cp -r config/waybar/* ~/.config/waybar/
 cp -r config/waybar/indicators/* ~/.config/waybar/indicators/
 
+# Copy terminal configs (Alacritty, Kitty, Ghostty)
+mkdir -p ~/.config/alacritty
+cp config/alacritty.toml ~/.config/alacritty/alacritty.toml
 
-# Copy themes
+mkdir -p ~/.config/kitty
+cp config/kitty/kitty.conf ~/.config/kitty/kitty.conf
+
+mkdir -p ~/.config/ghostty
+cp config/ghostty/config ~/.config/ghostty/config
+
+# Copy themes (now full theme directories with all config files)
 mkdir -p ~/.config/hypr/themes
 cp -r themes/* ~/.config/hypr/themes/
 
-# Set default theme
-ln -sf ~/.config/hypr/themes/catppuccin.conf ~/.config/hypr/theme.conf
+# Set default theme (catppuccin) and create symlinks
+mkdir -p ~/.local/state/hyprland/current
+ln -snf ~/.config/hypr/themes/catppuccin ~/.local/state/hyprland/current/theme
+ln -snf ~/.local/state/hyprland/current/theme/hyprland.conf ~/.config/hypr/theme.conf
+
+# Create application-specific symlinks for btop and mako
+mkdir -p ~/.config/btop/themes
+ln -snf ~/.local/state/hyprland/current/theme/btop.theme ~/.config/btop/themes/current.theme
+
+mkdir -p ~/.config/mako
+ln -snf ~/.local/state/hyprland/current/theme/mako.ini ~/.config/mako/config
+
+# Set initial background
+if [ -d ~/.local/state/hyprland/current/theme/backgrounds ]; then
+  FIRST_BG=$(find -L ~/.local/state/hyprland/current/theme/backgrounds -type f -print0 2>/dev/null | head -z -1 | tr -d '\0')
+  if [ -n "$FIRST_BG" ]; then
+    ln -snf "$FIRST_BG" ~/.local/state/hyprland/current/background
+  fi
+fi
+
+# Create browser policy directories if chromium or brave are installed
+if command -v chromium &>/dev/null; then
+  sudo mkdir -p /etc/chromium/policies/managed 2>/dev/null || true
+  sudo chmod a+rw /etc/chromium/policies/managed 2>/dev/null || true
+fi
+
+if command -v brave &>/dev/null; then
+  sudo mkdir -p /etc/brave/policies/managed 2>/dev/null || true
+  sudo chmod a+rw /etc/brave/policies/managed 2>/dev/null || true
+fi
 
 # Copy bin scripts
 if compgen -G "bin/*" > /dev/null; then

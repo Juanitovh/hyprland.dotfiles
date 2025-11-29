@@ -69,6 +69,10 @@ if pgrep -x mako >/dev/null; then
   makoctl reload
 fi
 
+# Update application themes (GNOME, browser)
+hypr-theme-set-gnome
+hypr-theme-set-browser
+
 # Call hook on theme set
 hypr-hook theme-set "$THEME_NAME"
 

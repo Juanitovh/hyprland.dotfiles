@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Set browser theme colors (Chromium, Brave) based on current Hyprland theme
+
+THEME_DIR="$HOME/.local/state/hyprland/current/theme"
+CHROMIUM_THEME="$THEME_DIR/chromium.theme"
+
+# Check if any supported browser is installed
+if ! command -v chromium >/dev/null && ! command -v brave >/dev/null; then
+  exit 0
+fi
+
+# Read theme color or use default
+if [[ -f "$CHROMIUM_THEME" ]]; then
+  THEME_RGB_COLOR=$(<"$CHROMIUM_THEME")
+  THEME_HEX_COLOR=$(printf '#%02x%02x%02x' ${THEME_RGB_COLOR//,/ })
+else
+  # Default neutral grey
+  THEME_RGB_COLOR="28,32,39"
+  THEME_HEX_COLOR="#1c2027"
+fi
+
+# Determine light or dark mode
+if [[ -f "$THEME_DIR/light.mode" ]]; then
+  COLOR_SCHEME="light"
+else
+  COLOR_SCHEME="dark"
+fi
+
+# Configure Chromium
+if command -v chromium >/dev/null; then
+  # Remove old policy file if it exists
+  if [[ -f /etc/chromium/policies/managed/color.json ]]; then
+    sudo rm -f /etc/chromium/policies/managed/color.json 2>/dev/null || true
+  fi
+
+  # Set theme color and color scheme
+  chromium --no-startup-window --set-theme-color="$THEME_RGB_COLOR" 2>/dev/null || true
+  chromium --no-startup-window --set-color-scheme="$COLOR_SCHEME" 2>/dev/null || true
+fi
+
+# Configure Brave
+if command -v brave >/dev/null; then
+  # Create policy directory if it doesn't exist
+  if [[ ! -d /etc/brave/policies/managed ]]; then
+    sudo mkdir -p /etc/brave/policies/managed 2>/dev/null || true
+    sudo chmod a+rw /etc/brave/policies/managed 2>/dev/null || true
+  fi
+
+  # Write theme color policy
+  echo "{\"BrowserThemeColor\": \"$THEME_HEX_COLOR\"}" | sudo tee /etc/brave/policies/managed/color.json >/dev/null 2>/dev/null || true
+
+  # Refresh Brave policies
+  brave --refresh-platform-policy --no-startup-window 2>/dev/null || true
+fi

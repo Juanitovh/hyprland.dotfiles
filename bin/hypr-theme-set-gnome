@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Set GNOME/GTK theme settings based on current Hyprland theme
+
+THEME_DIR="$HOME/.local/state/hyprland/current/theme"
+
+# Check if gsettings is available
+if ! command -v gsettings >/dev/null; then
+  exit 0
+fi
+
+# Set light or dark mode
+if [[ -f "$THEME_DIR/light.mode" ]]; then
+  gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
+  gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
+else
+  gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+  gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+fi
+
+# Set icon theme if specified
+ICONS_THEME_FILE="$THEME_DIR/icons.theme"
+if [[ -f "$ICONS_THEME_FILE" ]]; then
+  gsettings set org.gnome.desktop.interface icon-theme "$(<"$ICONS_THEME_FILE")"
+else
+  gsettings set org.gnome.desktop.interface icon-theme "Yaru-blue"
+fi
