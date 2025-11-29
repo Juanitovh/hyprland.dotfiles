@@ -249,9 +249,9 @@ if [ -d "config/walker/themes" ]; then
   cp -r config/walker/themes/* ~/.config/walker/themes/
 fi
 
-# Copy mako config
-mkdir -p ~/.config/mako
-cp config/mako/config ~/.config/mako/
+# Mako config will be symlinked from theme (see theme setup section below)
+# mkdir -p ~/.config/mako
+# cp config/mako/config ~/.config/mako/
 
 # Copy swayosd config
 mkdir -p ~/.config/swayosd
