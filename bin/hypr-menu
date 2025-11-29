@@ -153,9 +153,9 @@ show_toggle_menu() {
 }
 
 show_theme_menu() {
-  # Use elephant for theme menu (it has the hyprthemes Lua menu)
-  if command -v elephant >/dev/null; then
-    elephant -m hyprthemes
+  # Use walker with elephant menus for theme selection
+  if command -v walker >/dev/null && command -v elephant >/dev/null; then
+    hypr-launch-walker -m menus:hyperthemes --width 800 --minheight 400
   else
     # Fallback to simple list
     THEME=$(find ~/.config/hypr/themes -type f -name "*.conf" 2>/dev/null | xargs -n1 basename | sed 's/\.conf$//' | menu "Select Theme")

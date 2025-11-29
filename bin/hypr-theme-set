@@ -41,10 +41,10 @@ ln -nsf "$THEME_PATH/hyprland.conf" "$HOME/.config/hypr/theme.conf"
 mkdir -p "$HOME/.config/hypr/current"
 ln -nsf "$THEME_PATH/waybar.css" "$HOME/.config/hypr/current/waybar.css"
 
+# Change background with theme
+hypr-theme-bg-next
 
-echo "Theme set to: $THEME_NAME"
-
-# Restart components to apply new theme
+# Restart components to apply new theme (matching Omarchy's order)
 if pgrep -x waybar >/dev/null; then
   pkill waybar
   uwsm-app -- waybar &
@@ -55,21 +55,22 @@ if pgrep -x swayosd-server >/dev/null; then
   swayosd-server &
 fi
 
+# Restart terminal emulators to reload theme configs (Alacritty, Kitty, Ghostty)
+hypr-restart-terminal
+
 # Reload Hyprland config
 hyprctl reload
+
+# Reload btop config
+pkill -SIGUSR2 btop 2>/dev/null
 
 # Reload mako notification daemon
 if pgrep -x mako >/dev/null; then
   makoctl reload
 fi
 
-# Reload btop config
-pkill -SIGUSR2 btop 2>/dev/null
-
 # Call hook on theme set
 hypr-hook theme-set "$THEME_NAME"
 
-# Update wallpaper after theme change
-hypr-theme-bg-next
-
+echo "Theme set to: $THEME_NAME"
 notify-send "Theme changed" "Set to $THEME_NAME" -t 2000
