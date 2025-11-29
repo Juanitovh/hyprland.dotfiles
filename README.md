@@ -519,7 +519,52 @@ Configure snapper:
 sudo snapper -c root create-config /
 ```
 
-### Application launcher (elephant) not showing apps
+### Elephant shows nothing / "waiting for elephant"
+
+**Symptoms:** Walker shows empty results, clipboard shows "waiting for elephant", elephant launches but displays nothing
+
+**Root Cause:** Elephant is a search daemon that requires **provider packages** to function. Without providers, elephant runs but has no data to search.
+
+**Architecture:**
+- **Elephant** = Search engine framework (daemon)
+- **Elephant providers** = Search plugins that provide actual functionality
+  - `elephant-desktopapplications-bin` = Indexes desktop applications
+  - `elephant-clipboard-bin` = Provides clipboard history
+
+**Fix:**
+```bash
+# 1. Verify what's installed
+yay -Q | grep elephant
+
+# 2. Install required provider packages
+yay -S elephant-desktopapplications-bin elephant-clipboard-bin
+
+# 3. Restart elephant service
+systemctl --user restart elephant
+
+# Wait for indexing
+sleep 2
+
+# 4. Restart walker
+pkill walker
+setsid uwsm-app -- walker --gapplication-service &
+sleep 1
+
+# 5. Test app launcher
+walker  # Should show apps now
+
+# 6. Test clipboard (after copying something)
+echo "test" | wl-copy
+walker -m clipboard
+```
+
+**Expected output from `yay -Q | grep elephant`:**
+```
+elephant-clipboard-bin 2.16.1-1
+elephant-desktopapplications-bin 2.16.1-1
+```
+
+### Application launcher (elephant) shows errors
 
 If elephant shows errors like "unterminated string" or "uwsm-app -- ///":
 
@@ -533,7 +578,7 @@ systemctl --user status elephant
 # Restart elephant
 systemctl --user restart elephant
 
-# Check elephant logs
+# Check elephant logs for specific errors
 journalctl --user -u elephant -f
 ```
 
