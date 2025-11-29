@@ -293,9 +293,10 @@ ln -snf ~/.local/state/hyprland/current/theme/mako.ini ~/.config/mako/config
 
 # Set initial background
 if [ -d ~/.local/state/hyprland/current/theme/backgrounds ]; then
-  FIRST_BG=$(find -L ~/.local/state/hyprland/current/theme/backgrounds -type f -print0 2>/dev/null | head -z -1 | tr -d '\0')
-  if [ -n "$FIRST_BG" ]; then
-    ln -snf "$FIRST_BG" ~/.local/state/hyprland/current/background
+  # Use mapfile to get backgrounds array (same as Omarchy)
+  mapfile -d '' -t BACKGROUNDS < <(find -L ~/.local/state/hyprland/current/theme/backgrounds -type f -print0 2>/dev/null | sort -z)
+  if [ ${#BACKGROUNDS[@]} -gt 0 ]; then
+    ln -snf "${BACKGROUNDS[0]}" ~/.local/state/hyprland/current/background
   fi
 fi
 
