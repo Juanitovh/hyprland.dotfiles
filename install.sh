@@ -141,6 +141,7 @@ AUR_PACKAGES=(
   python-terminaltexteffects # For screensaver
   elephant-desktopapplications-bin  # Desktop app search backend
   elephant-clipboard-bin      # Clipboard history backend
+  elephant-menus-bin          # Menu provider for theme selection
 )
 
 ALL_PACKAGES=(

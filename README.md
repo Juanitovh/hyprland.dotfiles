@@ -563,7 +563,10 @@ walker -m clipboard
 ```
 elephant-clipboard-bin 2.16.1-1
 elephant-desktopapplications-bin 2.16.1-1
+elephant-menus-bin 2.16.1-1
 ```
+
+**Note:** `elephant-menus-bin` is required for the theme selection menu (SUPER+SHIFT+CTRL+SPACE).
 
 ### Application launcher (elephant) shows errors
 
