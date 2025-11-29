@@ -635,11 +635,27 @@ EOF
     fi
     echo "mkinitcpio hooks re-enabled"
 
-    # Update limine bootloader
-    echo "Updating bootloader..."
-    sudo limine-update
+    # Update limine bootloader and regenerate initramfs
+    echo ""
+    echo "WARNING: About to update bootloader and regenerate kernel initramfs."
+    echo "This will run 'mkinitcpio -P' which rebuilds your boot images."
+    echo "If this fails, your system may not boot properly."
+    echo ""
+    read -p "Continue with bootloader update? (y/n) " -n 1 -r
+    echo ""
 
-    echo "Boot menu with snapshots configured successfully!"
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo "Updating bootloader..."
+      sudo limine-update && echo "Boot menu with snapshots configured successfully!" || {
+        echo "ERROR: limine-update failed!"
+        echo "Your system may not boot properly. Please check the error messages above."
+        echo "You may need to restore from a snapshot or fix mkinitcpio configuration."
+      }
+    else
+      echo "Skipping bootloader update."
+      echo "Your limine configuration has been created but not applied."
+      echo "Run 'sudo limine-update' manually when ready."
+    fi
   fi  # End of limine_config check
 else
   echo "Warning: Limine bootloader not found. Skipping snapshot boot menu setup."
