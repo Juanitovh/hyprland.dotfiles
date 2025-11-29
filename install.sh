@@ -292,12 +292,18 @@ mkdir -p ~/.config/mako
 ln -snf ~/.local/state/hyprland/current/theme/mako.ini ~/.config/mako/config
 
 # Set initial background
+echo "Setting up initial wallpaper..."
 if [ -d ~/.local/state/hyprland/current/theme/backgrounds ]; then
   # Use mapfile to get backgrounds array (same as Omarchy)
   mapfile -d '' -t BACKGROUNDS < <(find -L ~/.local/state/hyprland/current/theme/backgrounds -type f -print0 2>/dev/null | sort -z)
   if [ ${#BACKGROUNDS[@]} -gt 0 ]; then
+    echo "Found ${#BACKGROUNDS[@]} background(s), setting first one: ${BACKGROUNDS[0]}"
     ln -snf "${BACKGROUNDS[0]}" ~/.local/state/hyprland/current/background
+  else
+    echo "WARNING: No background images found in theme"
   fi
+else
+  echo "WARNING: Background directory not found at ~/.local/state/hyprland/current/theme/backgrounds"
 fi
 
 # Create browser policy directories if chromium or brave are installed
