@@ -69,4 +69,7 @@ pkill -SIGUSR2 btop 2>/dev/null
 # Call hook on theme set
 hypr-hook theme-set "$THEME_NAME"
 
+# Update wallpaper after theme change
+hypr-theme-bg-next
+
 notify-send "Theme changed" "Set to $THEME_NAME" -t 2000
