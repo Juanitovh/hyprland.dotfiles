@@ -47,7 +47,7 @@ WAYLAND_TOOLS=(
   wl-clipboard
   cliphist
   wf-recorder
-  swww
+  swaybg
   swayosd
 )
 
