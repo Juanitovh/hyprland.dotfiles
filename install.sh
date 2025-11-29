@@ -378,9 +378,9 @@ echo "Created wallpaper directory at ~/Pictures/Wallpapers"
 # Install default webapps
 echo ""
 echo "Installing default webapps..."
-~/.local/bin/hypr-webapp-install "GitHub" "https://github.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/github-light.png"
-~/.local/bin/hypr-webapp-install "ChatGPT" "https://chatgpt.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chatgpt.png"
-~/.local/bin/hypr-webapp-install "YouTube" "https://youtube.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/youtube.png"
+~/.local/bin/hypr-webapp-install "GitHub" "https://github.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/github-light.png" || echo "Warning: GitHub webapp icon download failed, using fallback"
+~/.local/bin/hypr-webapp-install "ChatGPT" "https://chatgpt.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chatgpt.png" || echo "Warning: ChatGPT webapp icon download failed, using fallback"
+~/.local/bin/hypr-webapp-install "YouTube" "https://youtube.com" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/youtube.png" || echo "Warning: YouTube webapp icon download failed, using fallback"
 
 echo ""
 echo "==================================="
