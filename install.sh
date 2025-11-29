@@ -441,6 +441,133 @@ echo "Enabling system services..."
 sudo systemctl enable bluetooth
 sudo systemctl enable NetworkManager
 
+# Setup Limine bootloader with snapper snapshot menu
+echo ""
+echo "Configuring boot menu with snapshot support..."
+if command -v limine &>/dev/null; then
+  # Install limine snapper integration packages
+  sudo pacman -S --noconfirm --needed limine-snapper-sync limine-mkinitcpio-hook
+
+  # Configure mkinitcpio hooks
+  sudo tee /etc/mkinitcpio.conf.d/hyprland_hooks.conf <<'EOF' >/dev/null
+HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt filesystems fsck btrfs-overlayfs)
+EOF
+
+  # Detect if using EFI or BIOS
+  [[ -f /boot/EFI/limine/limine.conf ]] || [[ -f /boot/EFI/BOOT/limine.conf ]] && EFI=true
+
+  # Find limine config location
+  if [[ -n "$EFI" ]]; then
+    if [[ -f /boot/EFI/BOOT/limine.conf ]]; then
+      limine_config="/boot/EFI/BOOT/limine.conf"
+    else
+      limine_config="/boot/EFI/limine/limine.conf"
+    fi
+  else
+    limine_config="/boot/limine/limine.conf"
+  fi
+
+  # Get current kernel command line
+  if [[ -f "$limine_config" ]]; then
+    CMDLINE=$(grep "^[[:space:]]*cmdline:" "$limine_config" | head -1 | sed 's/^[[:space:]]*cmdline:[[:space:]]*//')
+  else
+    echo "Warning: Limine config not found, using default cmdline"
+    CMDLINE="rw"
+  fi
+
+  # Create limine configuration
+  sudo tee /etc/default/limine <<EOF >/dev/null
+TARGET_OS_NAME="Hyprland"
+
+ESP_PATH="/boot"
+
+KERNEL_CMDLINE[default]="$CMDLINE"
+KERNEL_CMDLINE[default]+="quiet splash"
+
+ENABLE_UKI=yes
+CUSTOM_UKI_NAME="hyprland"
+
+ENABLE_LIMINE_FALLBACK=yes
+
+# Find and add other bootloaders
+FIND_BOOTLOADERS=yes
+
+BOOT_ORDER="*, *fallback, Snapshots"
+
+MAX_SNAPSHOT_ENTRIES=5
+
+SNAPSHOT_FORMAT_CHOICE=5
+EOF
+
+  # Disable UKI and fallback for BIOS systems
+  if [[ -z $EFI ]]; then
+    sudo sed -i '/^ENABLE_UKI=/d; /^ENABLE_LIMINE_FALLBACK=/d' /etc/default/limine
+  fi
+
+  # Create limine boot menu configuration
+  sudo tee /boot/limine.conf <<'EOF' >/dev/null
+### Read more at config document: https://github.com/limine-bootloader/limine/blob/trunk/CONFIG.md
+#timeout: 3
+default_entry: 2
+interface_branding: Hyprland Bootloader
+interface_branding_color: 2
+hash_mismatch_panic: no
+
+term_background: 1a1b26
+backdrop: 1a1b26
+
+# Terminal colors (Tokyo Night palette)
+term_palette: 15161e;f7768e;9ece6a;e0af68;7aa2f7;bb9af7;7dcfff;a9b1d6
+term_palette_bright: 414868;f7768e;9ece6a;e0af68;7aa2f7;bb9af7;7dcfff;c0caf5
+
+# Text colors
+term_foreground: c0caf5
+term_foreground_bright: c0caf5
+term_background_bright: 24283b
+
+EOF
+
+  # Remove old config if it's not /boot/limine.conf
+  if [[ "$limine_config" != "/boot/limine.conf" ]] && [[ -f "$limine_config" ]]; then
+    sudo rm "$limine_config"
+  fi
+
+  # Configure snapper
+  if ! sudo snapper list-configs 2>/dev/null | grep -q "root"; then
+    sudo snapper -c root create-config /
+  fi
+
+  if ! sudo snapper list-configs 2>/dev/null | grep -q "home"; then
+    sudo snapper -c home create-config /home
+  fi
+
+  # Tweak snapper settings
+  sudo sed -i 's/^TIMELINE_CREATE="yes"/TIMELINE_CREATE="no"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+  sudo sed -i 's/^NUMBER_LIMIT="50"/NUMBER_LIMIT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+  sudo sed -i 's/^NUMBER_LIMIT_IMPORTANT="10"/NUMBER_LIMIT_IMPORTANT="5"/' /etc/snapper/configs/{root,home} 2>/dev/null || true
+
+  # Enable limine-snapper-sync service
+  sudo systemctl enable limine-snapper-sync.service
+
+  # Re-enable mkinitcpio hooks
+  if [ -f /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled ]; then
+    sudo mv /usr/share/libalpm/hooks/90-mkinitcpio-install.hook.disabled /usr/share/libalpm/hooks/90-mkinitcpio-install.hook
+  fi
+
+  if [ -f /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled ]; then
+    sudo mv /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook.disabled /usr/share/libalpm/hooks/60-mkinitcpio-remove.hook
+  fi
+
+  # Update limine bootloader
+  echo "Updating bootloader..."
+  sudo limine-update
+
+  echo "Boot menu with snapshots configured successfully!"
+else
+  echo "Warning: Limine bootloader not found. Skipping snapshot boot menu setup."
+  echo "If you want snapshot boot menu, install limine bootloader first."
+fi
+
 # Create default wallpaper directory
 mkdir -p ~/Pictures/Wallpapers
 echo "Created wallpaper directory at ~/Pictures/Wallpapers"
